@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Warehouse Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .wh-code-badge{
+      display:inline-flex; align-items:center; justify-content:center;
+      min-width:72px; padding:.25rem .55rem; border-radius:.65rem;
+      font-weight:850; letter-spacing:.03em; font-size:.78rem;
+      background:rgba(11,42,74,.08); color:var(--erp-primary);
+      border:1px solid rgba(11,42,74,.14);
+    }
+
+    .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-active{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-inactive{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+    .badge-pending{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+
+    .cap-high{ color:var(--erp-danger); font-weight:850; }
+    .cap-ok{ color:var(--erp-success); font-weight:750; }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge{ color:rgba(255,255,255,.92); }
+    [data-bs-theme="dark"] .wh-code-badge{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.12); color:rgba(255,255,255,.92); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-warehouse text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Warehouse Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Storage • Locations • Capacity</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="warehouses.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-boxes-stacked"></i><p>Inventory</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="categories.html" class="nav-link"><i class="fa-solid fa-tags me-2"></i><p>Categories</p></a></li>
+                  <li class="nav-item"><a href="units.html" class="nav-link"><i class="fa-solid fa-ruler-combined me-2"></i><p>Units</p></a></li>
+                  <li class="nav-item"><a href="products.html" class="nav-link"><i class="fa-solid fa-box me-2"></i><p>Products</p></a></li>
+                  <li class="nav-item"><a href="warehouses.html" class="nav-link active"><i class="fa-solid fa-warehouse me-2"></i><p>Warehouses</p></a></li>
+                  <li class="nav-item"><a href="#stock" class="nav-link"><i class="fa-solid fa-dolly me-2"></i><p>Stock</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Warehouse Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="categories.html">Inventory</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Warehouses</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Manage warehouse locations, capacity, assigned managers, and stock item counts.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+              <button class="btn btn-erp" type="button" id="btnAddWarehouse" data-bs-toggle="modal" data-bs-target="#addWarehouseModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Warehouse
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="container-fluid">
+
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Warehouses</div>
+                      <div class="kpi-value" id="kpiTotalWarehouses">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-warehouse" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Active Warehouses</div>
+                      <div class="kpi-value" id="kpiActiveWarehouses">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-circle-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(11,42,74,1), rgba(253,126,20,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Current Stock Items</div>
+                      <div class="kpi-value" id="kpiStockItems">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-boxes-stacked" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Capacity</div>
+                      <div class="kpi-value" id="kpiTotalCapacity">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-chart-area" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-warehouse text-primary"></i>
+                <span>Warehouses DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Responsive • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="warehousesTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:120px;">Warehouse ID</th>
+                      <th>Warehouse Name</th>
+                      <th style="width:130px;">Warehouse Code</th>
+                      <th style="width:160px;">Manager</th>
+                      <th style="width:200px;">Location</th>
+                      <th style="width:110px;">Capacity</th>
+                      <th style="width:150px;">Current Stock Items</th>
+                      <th style="width:110px;">Status</th>
+                      <th style="width:120px;">Created Date</th>
+                      <th style="width:210px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Warehouse Modal -->
+  <div class="modal fade" id="addWarehouseModal" tabindex="-1" aria-hidden="true" aria-labelledby="addWarehouseModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addWarehouseModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Warehouse</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addWarehouseForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addWhName" name="warehouse_name" placeholder="Warehouse Name" required />
+                  <label for="addWhName"><i class="fa-solid fa-warehouse me-2"></i>Warehouse Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control text-uppercase" id="addWhCode" name="warehouse_code" placeholder="Warehouse Code" maxlength="20" required />
+                  <label for="addWhCode"><i class="fa-solid fa-barcode me-2"></i>Warehouse Code</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addWhManager" name="manager" placeholder="Manager" required />
+                  <label for="addWhManager"><i class="fa-solid fa-user-tie me-2"></i>Manager</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addWhLocation" name="location" placeholder="Location" required />
+                  <label for="addWhLocation"><i class="fa-solid fa-location-dot me-2"></i>Location</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addWhCapacity" name="capacity" min="1" step="1" required />
+                  <label for="addWhCapacity"><i class="fa-solid fa-chart-area me-2"></i>Capacity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addWhStatus" name="status" required>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <label for="addWhStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: new warehouses start with 0 current stock items.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Warehouse</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Warehouse Modal -->
+  <div class="modal fade" id="editWarehouseModal" tabindex="-1" aria-hidden="true" aria-labelledby="editWarehouseModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editWarehouseModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Warehouse</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editWarehouseForm" autocomplete="off">
+          <input type="hidden" id="editWhIdHidden" name="warehouse_id" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editWhName" name="warehouse_name" required />
+                  <label for="editWhName"><i class="fa-solid fa-warehouse me-2"></i>Warehouse Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control text-uppercase" id="editWhCode" name="warehouse_code" maxlength="20" required />
+                  <label for="editWhCode"><i class="fa-solid fa-barcode me-2"></i>Warehouse Code</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editWhManager" name="manager" required />
+                  <label for="editWhManager"><i class="fa-solid fa-user-tie me-2"></i>Manager</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editWhLocation" name="location" required />
+                  <label for="editWhLocation"><i class="fa-solid fa-location-dot me-2"></i>Location</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editWhCapacity" name="capacity" min="1" step="1" required />
+                  <label for="editWhCapacity"><i class="fa-solid fa-chart-area me-2"></i>Capacity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editWhStockItems" name="current_stock_items" min="0" step="1" required />
+                  <label for="editWhStockItems"><i class="fa-solid fa-boxes-stacked me-2"></i>Current Stock Items</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="editWhStatus" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <label for="editWhStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Warehouse</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Warehouse Modal -->
+  <div class="modal fade" id="viewWarehouseModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewWarehouseModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewWarehouseModalLabel"><i class="fa-solid fa-eye me-2"></i>View Warehouse</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-warehouse" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewWhName">—</div>
+                      <div class="text-muted small" id="viewWhId">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-3"><span class="wh-code-badge" id="viewWhCode">—</span></div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-user-tie me-2"></i>Manager</div>
+                      <div class="fw-semibold" id="viewWhManager">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-location-dot me-2"></i>Location</div>
+                      <div class="fw-semibold text-end" id="viewWhLocation">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                      <div id="viewWhStatusContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-regular fa-calendar me-2"></i>Created Date</div>
+                      <div class="fw-semibold" id="viewWhCreatedAt">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Capacity & Stock</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-chart-area me-2"></i>Capacity</div>
+                      <div class="fw-semibold" id="viewWhCapacity">—</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-boxes-stacked me-2"></i>Current Stock Items</div>
+                      <div class="fw-semibold" id="viewWhStockItems">—</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-percent me-2"></i>Utilization</div>
+                      <div class="fw-semibold" id="viewWhUtilization">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: warehouse details are read-only.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Warehouse Modal -->
+  <div class="modal fade" id="deleteWarehouseModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteWarehouseModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteWarehouseModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Warehouse</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteWarehouseForm">
+          <input type="hidden" id="deleteWhIdHidden" name="warehouse_id" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteWhTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteWhMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      let warehouses = [
+        { warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store', warehouse_code:'WH-RM-01', manager:'Usman Khalid', location:'Factory Block A, Ground Floor', capacity:5000, current_stock_items:124, status:'active', created_at:'2025-09-10' },
+        { warehouse_id:'WRH-0002', warehouse_name:'Finished Goods Warehouse', warehouse_code:'WH-FG-01', manager:'Sara Khan', location:'Factory Block B, Level 1', capacity:3500, current_stock_items:286, status:'active', created_at:'2025-09-15' },
+        { warehouse_id:'WRH-0003', warehouse_name:'Packaging Store', warehouse_code:'WH-PK-01', manager:'Noor Ahmed', location:'Factory Block C, Ground Floor', capacity:1800, current_stock_items:92, status:'active', created_at:'2025-10-02' },
+        { warehouse_id:'WRH-0004', warehouse_name:'Cold Storage Unit', warehouse_code:'WH-CS-01', manager:'Hina Bashir', location:'Factory Block A, Basement', capacity:1200, current_stock_items:1180, status:'active', created_at:'2025-11-20' },
+        { warehouse_id:'WRH-0005', warehouse_name:'Dispatch Warehouse', warehouse_code:'WH-DP-01', manager:'Bilal Hussain', location:'Loading Bay, Gate 2', capacity:2200, current_stock_items:640, status:'active', created_at:'2026-01-08' },
+        { warehouse_id:'WRH-0006', warehouse_name:'Quarantine / QC Hold', warehouse_code:'WH-QC-01', manager:'Faisal Mahmood', location:'Quality Control Wing', capacity:600, current_stock_items:48, status:'pending', created_at:'2026-03-01' },
+        { warehouse_id:'WRH-0007', warehouse_name:'Legacy Storage (Closed)', warehouse_code:'WH-LS-01', manager:'Amina Rahman', location:'Old Factory Site', capacity:900, current_stock_items:0, status:'inactive', created_at:'2024-06-18' }
+      ];
+
+      const $tableEl = $('#warehousesTable');
+      const $tbody = $tableEl.find('tbody');
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+
+      const statusBadge = (status) => {
+        const s = String(status || '').toLowerCase();
+        if (s === 'active') return '<span class="badge status-badge badge-active">Active</span>';
+        if (s === 'inactive') return '<span class="badge status-badge badge-inactive">Inactive</span>';
+        return '<span class="badge status-badge badge-pending">Pending</span>';
+      };
+
+      const whCodeBadge = (code) => `<span class="wh-code-badge">${escapeHtml(String(code || '').toUpperCase())}</span>`;
+
+      const utilization = (stock, capacity) => {
+        const s = Number(stock) || 0;
+        const c = Number(capacity) || 0;
+        if (c <= 0) return 0;
+        return Math.round((s / c) * 100);
+      };
+
+      const stockCell = (stock, capacity) => {
+        const pct = utilization(stock, capacity);
+        const cls = pct >= 90 ? 'cap-high' : 'cap-ok';
+        return `<span class="${cls}">${escapeHtml(stock)}</span>`;
+      };
+
+      const codeExists = (code, excludeId) => {
+        const normalized = String(code || '').trim().toUpperCase();
+        return warehouses.some(w =>
+          w.warehouse_id !== excludeId &&
+          String(w.warehouse_code || '').trim().toUpperCase() === normalized
+        );
+      };
+
+      const renderKPIs = () => {
+        $('#kpiTotalWarehouses').text(warehouses.length);
+        $('#kpiActiveWarehouses').text(warehouses.filter(w => w.status === 'active').length);
+        $('#kpiStockItems').text(warehouses.reduce((sum, w) => sum + (Number(w.current_stock_items) || 0), 0));
+        $('#kpiTotalCapacity').text(warehouses.reduce((sum, w) => sum + (Number(w.capacity) || 0), 0).toLocaleString('en-PK'));
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const w of warehouses){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(w.warehouse_id)}</td>
+              <td>${escapeHtml(w.warehouse_name)}</td>
+              <td>${whCodeBadge(w.warehouse_code)}</td>
+              <td>${escapeHtml(w.manager)}</td>
+              <td>${escapeHtml(w.location)}</td>
+              <td>${escapeHtml(Number(w.capacity).toLocaleString('en-PK'))}</td>
+              <td>${stockCell(w.current_stock_items, w.capacity)}</td>
+              <td>${statusBadge(w.status)}</td>
+              <td>${escapeHtml(w.created_at)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(w.warehouse_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(w.warehouse_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(w.warehouse_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 8,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0, 1, 8] },
+          { responsivePriority: 2, targets: [2, 3, 7] },
+          { responsivePriority: 3, targets: [4, 5, 6] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const readWarehouseForm = (prefix) => ({
+        warehouse_name: document.getElementById(prefix + 'WhName').value.trim(),
+        warehouse_code: document.getElementById(prefix + 'WhCode').value.trim().toUpperCase(),
+        manager: document.getElementById(prefix + 'WhManager').value.trim(),
+        location: document.getElementById(prefix + 'WhLocation').value.trim(),
+        capacity: parseInt(document.getElementById(prefix + 'WhCapacity').value, 10),
+        status: document.getElementById(prefix + 'WhStatus').value,
+        ...(prefix === 'edit' ? {
+          current_stock_items: parseInt(document.getElementById('editWhStockItems').value, 10)
+        } : {})
+      });
+
+      const validateWarehouse = (data, excludeId) => {
+        if (!data.warehouse_name || !data.warehouse_code || !data.manager || !data.location) return 'Required fields are missing.';
+        if (codeExists(data.warehouse_code, excludeId)) return 'Warehouse code already exists.';
+        if (Number.isNaN(data.capacity) || data.capacity < 1) return 'Capacity must be at least 1.';
+        if (data.current_stock_items !== undefined && (Number.isNaN(data.current_stock_items) || data.current_stock_items < 0)) return 'Current stock items must be a valid non-negative number.';
+        if (data.current_stock_items !== undefined && data.current_stock_items > data.capacity) return 'Current stock items cannot exceed capacity.';
+        return '';
+      };
+
+      const fillEditForm = (w) => {
+        document.getElementById('editWhIdHidden').value = w.warehouse_id;
+        document.getElementById('editWhName').value = w.warehouse_name;
+        document.getElementById('editWhCode').value = w.warehouse_code;
+        document.getElementById('editWhManager').value = w.manager;
+        document.getElementById('editWhLocation').value = w.location;
+        document.getElementById('editWhCapacity').value = w.capacity;
+        document.getElementById('editWhStockItems').value = w.current_stock_items;
+        document.getElementById('editWhStatus').value = w.status;
+      };
+
+      const fillViewModal = (w) => {
+        const pct = utilization(w.current_stock_items, w.capacity);
+        document.getElementById('viewWhId').textContent = w.warehouse_id;
+        document.getElementById('viewWhName').textContent = w.warehouse_name;
+        document.getElementById('viewWhCode').textContent = w.warehouse_code;
+        document.getElementById('viewWhManager').textContent = w.manager;
+        document.getElementById('viewWhLocation').textContent = w.location;
+        document.getElementById('viewWhCapacity').textContent = Number(w.capacity).toLocaleString('en-PK');
+        document.getElementById('viewWhStockItems').innerHTML = stockCell(w.current_stock_items, w.capacity);
+        document.getElementById('viewWhUtilization').textContent = pct + '%';
+        document.getElementById('viewWhCreatedAt').textContent = w.created_at;
+        document.getElementById('viewWhStatusContainer').innerHTML = statusBadge(w.status);
+      };
+
+      $('#btnRefresh').on('click', () => refreshTable());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('addWarehouseForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const data = readWarehouseForm('add');
+        const error = validateWarehouse(data);
+        if (error){ alert(error); return; }
+
+        const nextNum = warehouses.length
+          ? Math.max(...warehouses.map(x => parseInt(String(x.warehouse_id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        warehouses.push({
+          warehouse_id: `WRH-${String(nextNum).padStart(4,'0')}`,
+          current_stock_items: 0,
+          created_at: new Date().toISOString().slice(0,10),
+          ...data
+        });
+
+        ev.target.reset();
+        document.getElementById('addWhStatus').value = 'active';
+        bootstrap.Modal.getInstance(document.getElementById('addWarehouseModal'))?.hide();
+        refreshTable();
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const w = warehouses.find(x => x.warehouse_id === id);
+        if (!w) return;
+
+        if (action === 'view'){
+          fillViewModal(w);
+          new bootstrap.Modal(document.getElementById('viewWarehouseModal')).show();
+          return;
+        }
+
+        if (action === 'edit'){
+          fillEditForm(w);
+          new bootstrap.Modal(document.getElementById('editWarehouseModal')).show();
+          return;
+        }
+
+        if (action === 'delete'){
+          document.getElementById('deleteWhIdHidden').value = w.warehouse_id;
+          document.getElementById('deleteWhTitle').textContent = `Delete "${w.warehouse_name}"?`;
+          document.getElementById('deleteWhMessage').textContent = `${w.warehouse_code} • ${w.warehouse_id}. This action cannot be undone.`;
+          new bootstrap.Modal(document.getElementById('deleteWarehouseModal')).show();
+        }
+      });
+
+      document.getElementById('editWarehouseForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('editWhIdHidden').value;
+        const w = warehouses.find(x => x.warehouse_id === id);
+        if (!w) return;
+
+        const data = readWarehouseForm('edit');
+        const error = validateWarehouse(data, id);
+        if (error){ alert(error); return; }
+
+        Object.assign(w, data);
+        bootstrap.Modal.getInstance(document.getElementById('editWarehouseModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('deleteWarehouseForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('deleteWhIdHidden').value;
+        warehouses = warehouses.filter(x => x.warehouse_id !== id);
+        bootstrap.Modal.getInstance(document.getElementById('deleteWarehouseModal'))?.hide();
+        refreshTable();
+      });
+
+      document.addEventListener('DOMContentLoaded', () => refreshTable());
+    })();
+  </script>
+
+</body>
+</html>

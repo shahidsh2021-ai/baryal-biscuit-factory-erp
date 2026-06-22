@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Permissions Management</title>
+
+  <!-- AdminLTE 4 (Bootstrap 5) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <!-- OverlayScrollbars -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <!-- DataTables + Buttons (Bootstrap 5) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-surface:#ffffff;
+      --erp-muted:#6b7280;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .wrapper{ min-height: 100vh; }
+
+    .main-sidebar{
+      background: var(--erp-dark-sidebar) !important;
+    }
+
+    .main-sidebar .brand-link{
+      background: linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75));
+    }
+
+    .main-sidebar .nav-treeview{
+      background: rgba(255,255,255,.03);
+    }
+
+    .main-sidebar .nav-link{
+      padding-top: .65rem;
+      padding-bottom: .65rem;
+    }
+
+    .erp-card{
+      border-radius: 1rem;
+      border: 1px solid rgba(11,42,74,.10);
+      box-shadow: 0 10px 24px rgba(11,42,74,.06);
+      overflow: hidden;
+      background: rgba(255,255,255,.92);
+    }
+
+    .page-title{
+      color: var(--erp-primary);
+      font-weight: 950;
+      letter-spacing: -0.01em;
+    }
+
+    /* KPI Cards */
+    .kpi-card{
+      border-radius: .95rem;
+      border: 1px solid rgba(11,42,74,.12);
+      box-shadow: 0 10px 24px rgba(11,42,74,.06);
+      overflow: hidden;
+      background: rgba(255,255,255,.95);
+    }
+
+    .kpi-card .kpi-top{
+      height: 10px;
+      background: linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85));
+    }
+
+    .kpi-icon{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(11,42,74,.08);
+      border: 1px solid rgba(11,42,74,.12);
+    }
+
+    .kpi-value{
+      font-size: 2.05rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--erp-primary);
+    }
+
+    .kpi-label{
+      color: rgba(0,0,0,.62);
+      font-weight: 650;
+    }
+
+    html[data-bs-theme="dark"] .erp-card,
+    html[data-bs-theme="dark"] .kpi-card{
+      background: rgba(255,255,255,.03);
+      border-color: rgba(255,255,255,.10) !important;
+      box-shadow: none;
+    }
+
+    html[data-bs-theme="dark"] .kpi-label{
+      color: rgba(255,255,255,.65);
+    }
+
+    /* DataTables polish */
+    .table thead th{
+      font-weight: 850;
+      color: rgba(0,0,0,.75);
+      background: rgba(11,42,74,.04);
+      border-bottom-width: 1px;
+    }
+
+    .table tbody td{
+      vertical-align: middle;
+    }
+
+    [data-bs-theme="dark"] .table thead th{
+      color: rgba(255,255,255,.88);
+      background: rgba(255,255,255,.06);
+    }
+
+    .action-btn{
+      cursor: pointer;
+      border-radius: .7rem;
+      padding: .35rem .5rem;
+    }
+
+    .btn-erp{
+      background: var(--erp-primary);
+      color: #fff;
+      border-color: var(--erp-primary);
+    }
+    .btn-erp:hover{
+      background: #0e3a64;
+      border-color: #0e3a64;
+      color: #fff;
+    }
+
+    /* Modal header gradients */
+    .modal-header.bg-erp{
+      background: linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85));
+      color: #fff;
+    }
+
+    /* Badges */
+    .badge-erp{
+      background: rgba(11,42,74,.08);
+      color: var(--erp-primary);
+      border: 1px solid rgba(11,42,74,.14);
+    }
+
+    /* Utility */
+    .section-ribbon{ height:6px;border-radius:999px;background: linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <!-- Top Navbar -->
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-shield-halved text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color: var(--erp-primary);">User Access Control</div>
+              <div class="text-muted small" style="margin-top:-1px;">Permissions & Auditing</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item text-danger" href="#" id="logoutBtn">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="#permissions" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing: .2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="#dashboard" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="#roles" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="#permissions" class="nav-link active"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="#users" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Permissions</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="users/roles.html">Access Control</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Permissions</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Define granular access rights for modules with audit-friendly metadata.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn" type="button" id="btnRefresh" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+              <button class="btn btn-erp" type="button" id="btnAddPermission" data-bs-toggle="modal" data-bs-target="#addPermissionModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Permission
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="container-fluid">
+          <!-- Permission Statistics Cards -->
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Permissions</div>
+                      <div class="kpi-value" id="kpiTotal">0</div>
+                    </div>
+                    <div class="kpi-icon">
+                      <i class="fa-solid fa-list-check" style="color: var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background: linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Active Permissions</div>
+                      <div class="kpi-value" id="kpiActive">0</div>
+                    </div>
+                    <div class="kpi-icon">
+                      <i class="fa-solid fa-circle-check" style="color: var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background: linear-gradient(90deg, rgba(11,42,74,1), rgba(253,126,20,.9));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Assigned Permissions</div>
+                      <div class="kpi-value" id="kpiAssigned">0</div>
+                    </div>
+                    <div class="kpi-icon">
+                      <i class="fa-solid fa-diagram-project" style="color: var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background: linear-gradient(90deg, rgba(220,53,69,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Unassigned Permissions</div>
+                      <div class="kpi-value" id="kpiUnassigned">0</div>
+                    </div>
+                    <div class="kpi-icon">
+                      <i class="fa-solid fa-ban" style="color: var(--erp-danger);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permissions DataTable -->
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between" style="background: rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-key text-primary"></i>
+                <span>Permissions DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search, Sorting, Pagination, Responsive, Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="permissionsTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 140px;">Permission ID</th>
+                      <th>Permission Name</th>
+                      <th style="width: 18%">Module</th>
+                      <th style="width: 30%">Description</th>
+                      <th style="width: 120px">Status</th>
+                      <th style="width: 160px">Created Date</th>
+                      <th style="width: 170px">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Permission Modal -->
+  <div class="modal fade" id="addPermissionModal" tabindex="-1" aria-hidden="true" aria-labelledby="addPermissionModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addPermissionModalLabel">
+            <i class="fa-solid fa-plus me-2"></i>Add Permission
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addPermissionForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addPermissionName" name="permissionName" placeholder="Permission Name" required />
+                  <label for="addPermissionName"><i class="fa-solid fa-tag me-2"></i>Permission Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addPermissionModule" name="module" placeholder="Module" required />
+                  <label for="addPermissionModule"><i class="fa-solid fa-layer-group me-2"></i>Module</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="addPermissionDesc" name="description" style="height: 120px" placeholder="Description" required></textarea>
+                  <label for="addPermissionDesc"><i class="fa-solid fa-align-left me-2"></i>Description</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addPermissionStatus" name="status" required>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <label for="addPermissionStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addPermissionId" name="permissionId" placeholder="Permission ID (e.g., Users.Create)" />
+                  <label for="addPermissionId"><i class="fa-solid fa-hashtag me-2"></i>Permission ID (optional)</label>
+                </div>
+                <div class="form-text ms-2" style="color: rgba(0,0,0,.55);">If empty, a normalized ID will be generated from Permission Name.</div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background: rgba(11,42,74,.05); border: 1px solid rgba(11,42,74,.12); color: var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>
+                  Backend integration is not wired in this UI-only template. Data is stored in-memory for demo.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-erp" id="btnSubmitAdd">
+              <i class="fa-solid fa-floppy-disk me-2"></i>Save Permission
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Permission Modal -->
+  <div class="modal fade" id="editPermissionModal" tabindex="-1" aria-hidden="true" aria-labelledby="editPermissionModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editPermissionModalLabel">
+            <i class="fa-solid fa-pen-to-square me-2"></i>Edit Permission
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editPermissionForm" autocomplete="off">
+          <input type="hidden" id="editPermissionIdHidden" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editPermissionName" name="permissionName" placeholder="Permission Name" required />
+                  <label for="editPermissionName"><i class="fa-solid fa-tag me-2"></i>Permission Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editPermissionModule" name="module" placeholder="Module" required />
+                  <label for="editPermissionModule"><i class="fa-solid fa-layer-group me-2"></i>Module</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="editPermissionDesc" name="description" style="height: 120px" placeholder="Description" required></textarea>
+                  <label for="editPermissionDesc"><i class="fa-solid fa-align-left me-2"></i>Description</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editPermissionStatus" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <label for="editPermissionStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editPermissionId" name="permissionId" placeholder="Permission ID" disabled />
+                  <label for="editPermissionId"><i class="fa-solid fa-hashtag me-2"></i>Permission ID</label>
+                </div>
+                <div class="form-text ms-2" style="color: rgba(0,0,0,.55);">ID is immutable in this demo UI.</div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background: rgba(11,42,74,.05); border: 1px solid rgba(11,42,74,.12); color: var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-arrows-rotate me-2"></i>
+                  Changes will update the table immediately (demo-only).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-erp" id="btnSubmitEdit">
+              <i class="fa-solid fa-save me-2"></i>Update Permission
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deletePermissionModal" tabindex="-1" aria-hidden="true" aria-labelledby="deletePermissionModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background: linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deletePermissionModalLabel">
+            <i class="fa-solid fa-trash me-2"></i>Delete Permission
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deletePermissionForm">
+          <input type="hidden" id="deletePermissionIdHidden" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size: 1.8rem; line-height: 1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deletePermissionTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deletePermissionMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-danger" id="btnConfirmDelete">
+              <i class="fa-solid fa-trash me-2"></i>Delete
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+
+  <script>
+    (function(){
+      // In-memory demo store
+      let permissions = [
+        { id: 'Users.Create', name: 'Create Users', module: 'Users', description: 'Allow creation of new user accounts.', status: 'active', createdDate: '2026-06-01', assigned: true },
+        { id: 'Users.Edit', name: 'Edit Users', module: 'Users', description: 'Allow modification of user profiles and roles.', status: 'active', createdDate: '2026-06-02', assigned: true },
+        { id: 'Users.Delete', name: 'Delete Users', module: 'Users', description: 'Allow deletion of user accounts.', status: 'inactive', createdDate: '2026-06-03', assigned: false },
+        { id: 'Users.View', name: 'View Users', module: 'Users', description: 'Allow viewing user lists and details.', status: 'active', createdDate: '2026-06-01', assigned: true },
+
+        { id: 'Roles.Create', name: 'Create Roles', module: 'Roles', description: 'Allow creation of new roles.', status: 'active', createdDate: '2026-05-25', assigned: true },
+        { id: 'Roles.Edit', name: 'Edit Roles', module: 'Roles', description: 'Allow editing role definitions.', status: 'active', createdDate: '2026-05-26', assigned: true },
+        { id: 'Roles.Delete', name: 'Delete Roles', module: 'Roles', description: 'Allow deletion of roles.', status: 'inactive', createdDate: '2026-05-27', assigned: false },
+        { id: 'Roles.View', name: 'View Roles', module: 'Roles', description: 'Allow viewing roles and assignments.', status: 'active', createdDate: '2026-05-25', assigned: true },
+
+        { id: 'Employees.Create', name: 'Create Employees', module: 'Employees', description: 'Allow addition of employees.', status: 'active', createdDate: '2026-05-18', assigned: true },
+        { id: 'Employees.Edit', name: 'Edit Employees', module: 'Employees', description: 'Allow editing employee details.', status: 'active', createdDate: '2026-05-19', assigned: true },
+        { id: 'Employees.Delete', name: 'Delete Employees', module: 'Employees', description: 'Allow deletion of employee records.', status: 'inactive', createdDate: '2026-05-20', assigned: false },
+        { id: 'Employees.View', name: 'View Employees', module: 'Employees', description: 'Allow viewing employee data.', status: 'active', createdDate: '2026-05-18', assigned: true },
+
+        { id: 'Inventory.Create', name: 'Create Inventory', module: 'Inventory', description: 'Allow creating inventory items and configurations.', status: 'active', createdDate: '2026-04-22', assigned: true },
+        { id: 'Inventory.Edit', name: 'Edit Inventory', module: 'Inventory', description: 'Allow updating inventory item definitions.', status: 'active', createdDate: '2026-04-23', assigned: true },
+        { id: 'Inventory.Delete', name: 'Delete Inventory', module: 'Inventory', description: 'Allow removal of inventory items.', status: 'inactive', createdDate: '2026-04-24', assigned: false },
+        { id: 'Inventory.View', name: 'View Inventory', module: 'Inventory', description: 'Allow viewing inventory catalogs.', status: 'active', createdDate: '2026-04-22', assigned: true },
+
+        { id: 'Purchases.Create', name: 'Create Purchases', module: 'Purchases', description: 'Allow creation of purchase transactions.', status: 'active', createdDate: '2026-03-10', assigned: true },
+        { id: 'Purchases.Approve', name: 'Approve Purchases', module: 'Purchases', description: 'Allow approval of purchase transactions.', status: 'active', createdDate: '2026-03-11', assigned: true },
+
+        { id: 'Sales.Create', name: 'Create Sales', module: 'Sales', description: 'Allow creation of sales transactions.', status: 'active', createdDate: '2026-02-14', assigned: true },
+        { id: 'Sales.Approve', name: 'Approve Sales', module: 'Sales', description: 'Allow approval of sales transactions.', status: 'inactive', createdDate: '2026-02-15', assigned: false },
+
+        { id: 'Reports.View', name: 'View Reports', module: 'Reports', description: 'Allow access to reporting dashboards and exports.', status: 'active', createdDate: '2026-01-30', assigned: true },
+
+        { id: 'Settings.Manage', name: 'Manage Settings', module: 'Settings', description: 'Allow configuration of system-wide settings.', status: 'active', createdDate: '2025-12-20', assigned: true }
+      ];
+
+      const $tableEl = $('#permissionsTable');
+      const $tbody = $tableEl.find('tbody');
+
+      const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'
+      }[c]));
+
+      const statusBadge = (status) => {
+        if (status === 'active') return '<span class="badge text-bg-success">Active</span>';
+        return '<span class="badge text-bg-secondary">Inactive</span>';
+      };
+
+      const renderKPIs = () => {
+        const total = permissions.length;
+        const active = permissions.filter(p => p.status === 'active').length;
+        const assigned = permissions.filter(p => p.assigned === true).length;
+        const unassigned = total - assigned;
+
+        $('#kpiTotal').text(total);
+        $('#kpiActive').text(active);
+        $('#kpiAssigned').text(assigned);
+        $('#kpiUnassigned').text(unassigned);
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const p of permissions){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(p.id)}</td>
+              <td>${escapeHtml(p.name)}</td>
+              <td>${escapeHtml(p.module)}</td>
+              <td>${escapeHtml(p.description)}</td>
+              <td>${statusBadge(p.status)}</td>
+              <td>${escapeHtml(p.createdDate)}</td>
+              <td>
+                <div class="d-flex gap-2 justify-content-center justify-content-md-start">
+                  <button class="btn btn-sm action-btn" style="background: rgba(11,42,74,.06); color: var(--erp-primary); border: 1px solid rgba(11,42,74,.12);" data-action="edit" data-id="${escapeHtml(p.id)}" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn btn-sm action-btn" style="background: rgba(220,53,69,.08); color: #b42318; border: 1px solid rgba(220,53,69,.18);" data-action="delete" data-id="${escapeHtml(p.id)}" title="Delete">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const commonDt = {
+        pageLength: 8,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        dom: 'Bfrtip',
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel' },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF' },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print' }
+        ],
+        language: {
+          search: "Search:",
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const normalizeId = (permissionName) => {
+        // Generates a best-effort ID similar to example style: Module.Action
+        // If name already contains '.', keep; otherwise convert spaces to dots and strip non-allowed chars.
+        const s = String(permissionName || '').trim();
+        if (!s) return 'Permissions.Custom';
+        if (s.includes('.')) return s.replace(/\s+/g,'').replace(/[^A-Za-z0-9_.-]/g,'');
+        const parts = s.split(/\s+/).filter(Boolean);
+        return parts.join('.')
+          .replace(/[^A-Za-z0-9_.-]/g,'')
+          .replace(/\.{2,}/g,'.');
+      };
+
+      // Refresh
+      $('#btnRefresh').on('click', () => {
+        // For demo, just redraw
+        refreshTable();
+      });
+
+      // Logout demo
+      $('#logoutBtn').on('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'auth/login.html';
+      });
+
+      // Add Permission
+      const addForm = document.getElementById('addPermissionForm');
+      addForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('addPermissionName').value.trim();
+        const module = document.getElementById('addPermissionModule').value.trim();
+        const description = document.getElementById('addPermissionDesc').value.trim();
+        const status = document.getElementById('addPermissionStatus').value;
+        const idInput = document.getElementById('addPermissionId').value.trim();
+
+        const id = idInput ? idInput.replace(/\s+/g,'') : normalizeId(name);
+        if (permissions.some(p => p.id === id)){
+          alert('Permission ID already exists in demo data. Use a different ID.');
+          return;
+        }
+
+        permissions.push({
+          id,
+          name,
+          module,
+          description,
+          status,
+          createdDate: new Date().toISOString().slice(0,10),
+          assigned: false
+        });
+
+        addForm.reset();
+        document.getElementById('addPermissionStatus').value = 'active';
+        refreshTable();
+        bootstrap.Modal.getInstance(document.getElementById('addPermissionModal'))?.hide();
+      });
+
+      // Edit/Delete delegated handlers
+      $tableEl.on('click', 'button[data-action="edit"]', (ev) => {
+        const id = ev.currentTarget.getAttribute('data-id');
+        const p = permissions.find(x => x.id === id);
+        if (!p) return;
+
+        document.getElementById('editPermissionIdHidden').value = p.id;
+        document.getElementById('editPermissionId').value = p.id;
+        document.getElementById('editPermissionName').value = p.name;
+        document.getElementById('editPermissionModule').value = p.module;
+        document.getElementById('editPermissionDesc').value = p.description;
+        document.getElementById('editPermissionStatus').value = p.status;
+
+        new bootstrap.Modal(document.getElementById('editPermissionModal')).show();
+      });
+
+      $tableEl.on('click', 'button[data-action="delete"]', (ev) => {
+        const id = ev.currentTarget.getAttribute('data-id');
+        const p = permissions.find(x => x.id === id);
+        if (!p) return;
+
+        document.getElementById('deletePermissionIdHidden').value = p.id;
+        document.getElementById('deletePermissionTitle').textContent = `Delete "${p.name}"?`;
+        document.getElementById('deletePermissionMessage').textContent = `Permission ID ${p.id}. This action cannot be undone.`;
+
+        new bootstrap.Modal(document.getElementById('deletePermissionModal')).show();
+      });
+
+      // Edit submit
+      const editForm = document.getElementById('editPermissionForm');
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editPermissionIdHidden').value;
+        const p = permissions.find(x => x.id === id);
+        if (!p) return;
+
+        p.name = document.getElementById('editPermissionName').value.trim();
+        p.module = document.getElementById('editPermissionModule').value.trim();
+        p.description = document.getElementById('editPermissionDesc').value.trim();
+        p.status = document.getElementById('editPermissionStatus').value;
+
+        refreshTable();
+        bootstrap.Modal.getInstance(document.getElementById('editPermissionModal'))?.hide();
+      });
+
+      // Delete submit
+      const deleteForm = document.getElementById('deletePermissionForm');
+      deleteForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('deletePermissionIdHidden').value;
+        permissions = permissions.filter(x => x.id !== id);
+
+        refreshTable();
+        bootstrap.Modal.getInstance(document.getElementById('deletePermissionModal'))?.hide();
+      });
+
+      // Init
+      document.addEventListener('DOMContentLoaded', () => {
+        refreshTable();
+      });
+    })();
+  </script>
+</body>
+</html>
+

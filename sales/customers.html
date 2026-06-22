@@ -1,0 +1,2087 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customers Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem;
+      border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06);
+      overflow:hidden;
+      background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem;
+      border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06);
+      overflow:hidden;
+      background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-active{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-inactive{ background:rgba(108,117,125,.12); color:#495057; border-color:rgba(108,117,125,.25); }
+    .badge-blocked{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+
+    .table thead th{
+      font-weight:850;
+      color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04);
+      border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85));
+      color:#fff;
+    }
+
+    .chart-card{
+      border-radius:1rem;
+      border:1px solid rgba(11,42,74,.10);
+      background:rgba(255,255,255,.92);
+      box-shadow:0 10px 24px rgba(11,42,74,.05);
+      overflow:hidden;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card,
+    [data-bs-theme="dark"] .chart-card{
+      background:rgba(255,255,255,.03);
+      border-color:rgba(255,255,255,.10) !important;
+      box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+
+    .chart-title{
+      font-weight:900;
+      color:var(--erp-primary);
+      display:flex;
+      align-items:center;
+      gap:.55rem;
+    }
+
+    .detail-label{ color:rgba(0,0,0,.62); font-weight:700; }
+    [data-bs-theme="dark"] .detail-label{ color:rgba(255,255,255,.65); }
+
+    .text-small-muted{ color:rgba(0,0,0,.55); font-weight:600; }
+    [data-bs-theme="dark"] .text-small-muted{ color:rgba(255,255,255,.65); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-users text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Customers Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Accounts • Credit • Sales Insights</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Sidebar: KEEP STRUCTURE UNCHANGED (cloned from existing pages) -->
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="../dashboard.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa-solid fa-industry"></i><p>Production</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="../production/recipes_bom.html" class="nav-link"><i class="fa-solid fa-flask me-2"></i><p>Recipes / BOM</p></a></li>
+                  <li class="nav-item"><a href="../production/production_orders.html" class="nav-link"><i class="fa-solid fa-clipboard-list me-2"></i><p>Production Orders</p></a></li>
+                  <li class="nav-item"><a href="../production/production_batches.html" class="nav-link"><i class="fa-solid fa-layer-group me-2"></i><p>Production Batches</p></a></li>
+                  <li class="nav-item"><a href="../production/production_consumption.html" class="nav-link"><i class="fa-solid fa-truck-arrow-right me-2"></i><p>Consumption</p></a></li>
+                  <li class="nav-item"><a href="../production/finished_goods.html" class="nav-link"><i class="fa-solid fa-boxes-stacked me-2"></i><p>Finished Goods</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Customers Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="../dashboard.html">Sales</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Customers</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Manage customer profiles, credit limits, balances, and performance insights.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Customer
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <!-- KPI Cards -->
+          <div class="row g-3 mb-2">
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Customers</div>
+                      <div class="kpi-value" id="kpiTotalCustomers">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-users" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Active Customers</div>
+                      <div class="kpi-value" id="kpiActiveCustomers">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-circle-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Credit Customers</div>
+                      <div class="kpi-value" id="kpiCreditCustomers">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-scale-balanced" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(13,110,253,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">New Customers This Month</div>
+                      <div class="kpi-value" id="kpiNewThisMonth">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-user-plus" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Receivable Amount</div>
+                      <div class="kpi-value" id="kpiTotalReceivable">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-sack-dollar" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(13,110,253,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Top Customer Sales</div>
+                      <div class="kpi-value" id="kpiTopCustomerSales">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-chart-column" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters + Charts + Table -->
+          <div class="card erp-card mt-1">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-filter text-primary"></i>
+                <span>Customers Filters</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-chart-pie me-1"></i>Demo dataset • KPI & charts update
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form id="filtersForm" autocomplete="off">
+                <div class="row g-3 align-items-end">
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <select class="form-select" id="filterCustomerStatus" name="customer_status">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="blocked">Blocked</option>
+                      </select>
+                      <label for="filterCustomerStatus"><i class="fa-solid fa-circle-info me-2"></i>Customer Status</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <select class="form-select" id="filterCustomerType" name="customer_type">
+                        <option value="">All Types</option>
+                        <option value="Retail">Retail</option>
+                        <option value="Wholesale">Wholesale</option>
+                        <option value="Distributor">Distributor</option>
+                      </select>
+                      <label for="filterCustomerType"><i class="fa-solid fa-diagram-predecessor me-2"></i>Customer Type</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <select class="form-select" id="filterCity" name="city">
+                        <option value="">All Cities</option>
+                      </select>
+                      <label for="filterCity"><i class="fa-solid fa-location-dot me-2"></i>City</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <input type="date" class="form-control" id="filterStartDate" name="start_date" />
+                      <label for="filterStartDate"><i class="fa-regular fa-calendar me-2"></i>Date Range (Start)</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <input type="date" class="form-control" id="filterEndDate" name="end_date" />
+                      <label for="filterEndDate"><i class="fa-regular fa-calendar me-2"></i>Date Range (End)</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+                    <button class="btn" type="button" id="btnResetFilters" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-eraser me-2"></i>Reset
+                    </button>
+                    <button class="btn btn-erp" type="button" id="btnApplyFilters">
+                      <i class="fa-solid fa-magnifying-glass me-2"></i>Apply Filters
+                    </button>
+                  </div>
+
+                </div>
+              </form>
+
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="row g-3 mt-2">
+            <div class="col-12 col-lg-6">
+              <div class="card erp-card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-map-location-dot text-primary"></i>
+                    <span>Customers by City</span>
+                  </div>
+                  <div class="text-muted small fw-semibold"><i class="fa-solid fa-chart-simple me-1"></i>Distribution</div>
+                </div>
+                <div class="card-body">
+                  <div class="chart-card p-3">
+                    <div class="chart-title mb-2"><i class="fa-solid fa-city text-primary"></i>City Mix</div>
+                    <div style="position:relative; height:260px;">
+                      <canvas id="chartCustomersByCity"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <div class="card erp-card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-chart-line text-primary"></i>
+                    <span>Customer Growth Trend</span>
+                  </div>
+                  <div class="text-muted small fw-semibold"><i class="fa-solid fa-calendar-days me-1"></i>Monthly</div>
+                </div>
+                <div class="card-body">
+                  <div class="chart-card p-3">
+                    <div class="chart-title mb-2"><i class="fa-solid fa-chart-area text-primary"></i>Growth</div>
+                    <div style="position:relative; height:260px;">
+                      <canvas id="chartCustomerGrowthTrend"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <div class="card erp-card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-diagram-project text-primary"></i>
+                    <span>Customer Type Distribution</span>
+                  </div>
+                  <div class="text-muted small fw-semibold"><i class="fa-solid fa-chart-pie me-1"></i>Breakdown</div>
+                </div>
+                <div class="card-body">
+                  <div class="chart-card p-3">
+                    <div class="chart-title mb-2"><i class="fa-solid fa-layer-group text-primary"></i>Types</div>
+                    <div style="position:relative; height:260px;">
+                      <canvas id="chartCustomerTypeDistribution"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+              <div class="card erp-card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-ranking-star text-primary"></i>
+                    <span>Top Customers by Sales</span>
+                  </div>
+                  <div class="text-muted small fw-semibold"><i class="fa-solid fa-bolt me-1"></i>Top 5</div>
+                </div>
+                <div class="card-body">
+                  <div class="chart-card p-3">
+                    <div class="chart-title mb-2"><i class="fa-solid fa-chart-column text-primary"></i>Leaderboard</div>
+                    <div style="position:relative; height:260px;">
+                      <canvas id="chartTopCustomersBySales"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-top:1rem; margin-bottom:0;">
+            <i class="fa-solid fa-shield-halved me-2"></i>UI-only demo: KPIs & charts are computed from in-memory customer records.
+          </div>
+
+          <!-- DataTable -->
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-clipboard-list text-primary"></i>
+                <span>Customers DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Excel/PDF/Print • Column Visibility
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="customersTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:160px;">Customer Code</th>
+                      <th style="width:220px;">Customer Name</th>
+                      <th style="width:220px;">Company Name</th>
+                      <th style="width:180px;">Contact Person</th>
+                      <th style="width:160px;">Phone Number</th>
+                      <th style="width:220px;">Email</th>
+                      <th style="width:160px;">City</th>
+                      <th style="width:140px;">Credit Limit</th>
+                      <th style="width:160px;">Current Balance</th>
+                      <th style="width:160px;">Customer Type</th>
+                      <th style="width:130px;">Status</th>
+                      <th style="width:170px;">Created Date</th>
+                      <th style="width:220px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Add Customer Modal -->
+  <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true" aria-labelledby="addCustomerModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addCustomerModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Customer</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addCustomerForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+
+              <div class="col-12 col-lg-5">
+                <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                  <div class="p-4">
+
+                    <div class="row g-3">
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="addCustomerCode" placeholder="Customer Code" required readonly />
+                          <label for="addCustomerCode"><i class="fa-solid fa-hashtag me-2"></i>Customer Code (Auto)</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="addCustomerName" placeholder="Customer Name" required />
+                          <label for="addCustomerName"><i class="fa-solid fa-user me-2"></i>Customer Name</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="addCompanyName" placeholder="Company Name" required />
+                          <label for="addCompanyName"><i class="fa-solid fa-building me-2"></i>Company Name</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control" id="addContactPerson" placeholder="Contact Person" />
+                          <label for="addContactPerson"><i class="fa-solid fa-user-tie me-2"></i>Contact Person</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="tel" class="form-control" id="addPhone" placeholder="Phone Number" />
+                          <label for="addPhone"><i class="fa-solid fa-phone me-2"></i>Phone Number</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="tel" class="form-control" id="addAlternatePhone" placeholder="Alternate Phone" />
+                          <label for="addAlternatePhone"><i class="fa-solid fa-phone-volume me-2"></i>Alternate Phone</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="email" class="form-control" id="addEmail" placeholder="Email" />
+                          <label for="addEmail"><i class="fa-solid fa-envelope me-2"></i>Email</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="addAddress" placeholder="Address" />
+                          <label for="addAddress"><i class="fa-solid fa-location-dot me-2"></i>Address</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="addCity" placeholder="City" />
+                          <label for="addCity"><i class="fa-solid fa-city me-2"></i>City</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="addProvince" placeholder="Province" />
+                          <label for="addProvince"><i class="fa-solid fa-map me-2"></i>Province</label>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-lg-7">
+                <div class="erp-card">
+                  <div class="p-4">
+                    <div class="fw-bold mb-2"><i class="fa-solid fa-sliders me-2 text-primary"></i>Credit & Compliance</div>
+
+                    <div class="row g-3">
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <select class="form-select" id="addCustomerType" required>
+                            <option value="Retail">Retail</option>
+                            <option value="Wholesale">Wholesale</option>
+                            <option value="Distributor">Distributor</option>
+                          </select>
+                          <label for="addCustomerType"><i class="fa-solid fa-diagram-predecessor me-2"></i>Customer Type</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="addCreditLimit" placeholder="Credit Limit" min="0" step="0.01" required />
+                          <label for="addCreditLimit"><i class="fa-solid fa-scale-balanced me-2"></i>Credit Limit</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="addOpeningBalance" placeholder="Opening Balance" min="0" step="0.01" required />
+                          <label for="addOpeningBalance"><i class="fa-solid fa-receipt me-2"></i>Opening Balance</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control" id="addTaxNumber" placeholder="Tax Number" />
+                          <label for="addTaxNumber"><i class="fa-solid fa-file-invoice me-2"></i>Tax Number</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <textarea class="form-control" id="addNotes" placeholder="Notes" style="height:96px;"></textarea>
+                          <label for="addNotes"><i class="fa-solid fa-sticky-note me-2"></i>Notes</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <select class="form-select" id="addStatus" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="blocked">Blocked</option>
+                          </select>
+                          <label for="addStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="alert" style="background:rgba(13,110,253,.05); border:1px solid rgba(13,110,253,.18); color:var(--erp-info); margin-bottom:0; margin-top:1rem;">
+                      <i class="fa-solid fa-shield-halved me-2"></i>UI-only demo: record saved in-memory.
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Customer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Customer Modal -->
+  <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-hidden="true" aria-labelledby="editCustomerModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editCustomerModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Customer</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editCustomerForm" autocomplete="off">
+          <input type="hidden" id="editCustomerIdHidden" />
+
+          <div class="modal-body">
+            <div class="row g-3">
+
+              <div class="col-12 col-lg-5">
+                <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                  <div class="p-4">
+                    <div class="row g-3">
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editCustomerCode" placeholder="Customer Code" required readonly />
+                          <label for="editCustomerCode"><i class="fa-solid fa-hashtag me-2"></i>Customer Code</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editCustomerName" placeholder="Customer Name" required />
+                          <label for="editCustomerName"><i class="fa-solid fa-user me-2"></i>Customer Name</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editCompanyName" placeholder="Company Name" required />
+                          <label for="editCompanyName"><i class="fa-solid fa-building me-2"></i>Company Name</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control" id="editContactPerson" placeholder="Contact Person" />
+                          <label for="editContactPerson"><i class="fa-solid fa-user-tie me-2"></i>Contact Person</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="tel" class="form-control" id="editPhone" placeholder="Phone Number" />
+                          <label for="editPhone"><i class="fa-solid fa-phone me-2"></i>Phone Number</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="tel" class="form-control" id="editAlternatePhone" placeholder="Alternate Phone" />
+                          <label for="editAlternatePhone"><i class="fa-solid fa-phone-volume me-2"></i>Alternate Phone</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="email" class="form-control" id="editEmail" placeholder="Email" />
+                          <label for="editEmail"><i class="fa-solid fa-envelope me-2"></i>Email</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editAddress" placeholder="Address" />
+                          <label for="editAddress"><i class="fa-solid fa-location-dot me-2"></i>Address</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editCity" placeholder="City" />
+                          <label for="editCity"><i class="fa-solid fa-city me-2"></i>City</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editProvince" placeholder="Province" />
+                          <label for="editProvince"><i class="fa-solid fa-map me-2"></i>Province</label>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-lg-7">
+                <div class="erp-card">
+                  <div class="p-4">
+                    <div class="fw-bold mb-2"><i class="fa-solid fa-sliders me-2 text-primary"></i>Credit & Compliance</div>
+
+                    <div class="row g-3">
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <select class="form-select" id="editCustomerType" required>
+                            <option value="Retail">Retail</option>
+                            <option value="Wholesale">Wholesale</option>
+                            <option value="Distributor">Distributor</option>
+                          </select>
+                          <label for="editCustomerType"><i class="fa-solid fa-diagram-predecessor me-2"></i>Customer Type</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="editCreditLimit" placeholder="Credit Limit" min="0" step="0.01" required />
+                          <label for="editCreditLimit"><i class="fa-solid fa-scale-balanced me-2"></i>Credit Limit</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="editOpeningBalance" placeholder="Opening Balance" min="0" step="0.01" required />
+                          <label for="editOpeningBalance"><i class="fa-solid fa-receipt me-2"></i>Opening Balance</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="text" class="form-control" id="editTaxNumber" placeholder="Tax Number" />
+                          <label for="editTaxNumber"><i class="fa-solid fa-file-invoice me-2"></i>Tax Number</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <textarea class="form-control" id="editNotes" placeholder="Notes" style="height:96px;"></textarea>
+                          <label for="editNotes"><i class="fa-solid fa-sticky-note me-2"></i>Notes</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <select class="form-select" id="editStatus" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="blocked">Blocked</option>
+                          </select>
+                          <label for="editStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="alert" style="background:rgba(13,110,253,.05); border:1px solid rgba(13,110,253,.18); color:var(--erp-info); margin-bottom:0; margin-top:1rem;">
+                      <i class="fa-solid fa-shield-halved me-2"></i>UI-only demo: edits are stored in memory.
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Customer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Customer Modal -->
+  <div class="modal fade" id="viewCustomerModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewCustomerModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewCustomerModalLabel"><i class="fa-solid fa-eye me-2"></i>View Customer</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-user" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewCustomerName">—</div>
+                      <div class="text-muted small" id="viewCompanyName">—</div>
+                      <div class="text-muted small mt-1" id="viewCustomerCode">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-phone me-2"></i>Phone</div>
+                        <div class="fw-semibold" id="viewPhone">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-envelope me-2"></i>Email</div>
+                        <div class="fw-semibold" id="viewEmail">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-location-dot me-2"></i>Location</div>
+                        <div class="fw-semibold" id="viewCityProv">—</div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-diagram-predecessor me-2"></i>Customer Type</div>
+                        <div class="fw-semibold" id="viewCustomerType">—</div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                        <div id="viewStatusContainer"></div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-scale-balanced me-2"></i>Credit Limit</div>
+                        <div class="fw-semibold" id="viewCreditLimit">—</div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-receipt me-2"></i>Current Balance</div>
+                        <div class="fw-semibold" id="viewCurrentBalance">—</div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-calendar me-2"></i>Created Date</div>
+                        <div class="fw-semibold" id="viewCreatedDate">—</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-circle-info me-2 text-primary"></i>Customer Details</div>
+
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover align-middle mb-0">
+                      <tbody>
+                        <tr><th style="width:240px;" class="detail-label"><i class="fa-solid fa-user-tie me-2"></i>Contact Person</th><td id="viewContactPerson">—</td></tr>
+                        <tr><th class="detail-label"><i class="fa-solid fa-phone-volume me-2"></i>Alternate Phone</th><td id="viewAlternatePhone">—</td></tr>
+                        <tr><th class="detail-label"><i class="fa-solid fa-building me-2"></i>Address</th><td id="viewAddress">—</td></tr>
+                        <tr><th class="detail-label"><i class="fa-solid fa-file-invoice me-2"></i>Tax Number</th><td id="viewTaxNumber">—</td></tr>
+                        <tr><th class="detail-label"><i class="fa-solid fa-sticky-note me-2"></i>Notes</th><td id="viewNotes">—</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-top:1rem; margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: details are read-only.
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Statement Modal -->
+  <div class="modal fade" id="customerStatementModal" tabindex="-1" aria-hidden="true" aria-labelledby="customerStatementModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="customerStatementModalLabel"><i class="fa-solid fa-receipt me-2"></i>Customer Statement</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-12 col-lg-4">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="fw-bold" id="statementCustomerTitle">—</div>
+                  <div class="text-muted small" id="statementCustomerMeta">—</div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="text-muted small fw-semibold"><i class="fa-solid fa-scale-balanced me-2"></i>Credit Limit</div>
+                    <div class="fw-bold" id="statementCreditLimit">—</div>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mt-2">
+                    <div class="text-muted small fw-semibold"><i class="fa-solid fa-receipt me-2"></i>Current Balance</div>
+                    <div class="fw-bold" id="statementCurrentBalance">—</div>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mt-2">
+                    <div class="text-muted small fw-semibold"><i class="fa-solid fa-calendar me-2"></i>Period</div>
+                    <div class="fw-bold" id="statementPeriod">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div class="fw-bold"><i class="fa-solid fa-list-ol me-2 text-primary"></i>Transactions (Demo)</div>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" id="btnStatementPrev">
+                        <i class="fa-solid fa-chevron-left me-2"></i>Prev
+                      </button>
+                      <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" id="btnStatementNext">
+                        Next<i class="fa-solid fa-chevron-right ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover align-middle">
+                      <thead>
+                        <tr>
+                          <th style="width:160px;">Date</th>
+                          <th style="width:220px;">Reference</th>
+                          <th style="width:200px;">Type</th>
+                          <th class="text-end" style="width:180px;">Debit</th>
+                          <th class="text-end" style="width:180px;">Credit</th>
+                          <th class="text-end" style="width:200px;">Running Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody id="statementTbody"></tbody>
+                    </table>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteCustomerModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteCustomerModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteCustomerModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Confirmation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteCustomerForm">
+          <input type="hidden" id="deleteCustomerIdHidden" />
+
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteCustomerTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteCustomerMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    (function(){
+      const todayStr = new Date().toISOString().slice(0,10);
+      const currentYear = new Date().getFullYear();
+      const now = new Date();
+      const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+      const CITY_LIST = ['Karachi','Lahore','Islamabad','Peshawar','Quetta','Multan','Hyderabad','Faisalabad'];
+      const CUSTOMER_TYPES = ['Retail','Wholesale','Distributor'];
+      const STATUSES = ['active','inactive','blocked'];
+
+      const demoCustomersBase = [
+        {
+          customer_id:'CUS-0001',
+          customer_code:'CUS-1001',
+          customer_name:'Nawab Traders',
+          company_name:'Nawab Traders (Pvt) Ltd.',
+          contact_person:'Asif Nawab',
+          phone:'+92-300-111-2233',
+          alternate_phone:'+92-301-889-2211',
+          email:'accounts@nawabtraders.com',
+          address:'Plot 18, Shahrah-e-Faisal, Gulshan',
+          city:'Karachi',
+          province:'Sindh',
+          customer_type:'Wholesale',
+          credit_limit:1500000.00,
+          opening_balance:420000.00,
+          current_balance:385000.00,
+          tax_number:'NTN-8899123',
+          notes:'Prefers monthly settlement. Receives delivery on weekdays.',
+          status:'active',
+          created_at:addDays(-38)
+        },
+        {
+          customer_id:'CUS-0002',
+          customer_code:'CUS-1002',
+          customer_name:'Green Valley Distributors',
+          company_name:'Green Valley Distributors',
+          contact_person:'Hassan Ali',
+          phone:'+92-321-440-7788',
+          alternate_phone:'+92-322-550-1199',
+          email:'sales@gvd.com.pk',
+          address:'Block B, North Nazimabad',
+          city:'Karachi',
+          province:'Sindh',
+          customer_type:'Distributor',
+          credit_limit:2500000.00,
+          opening_balance:780000.00,
+          current_balance:910000.00,
+          tax_number:'NTN-2233441',
+          notes:'Credit terms: Net 30. Strong volume partner.',
+          status:'active',
+          created_at:addDays(-16)
+        },
+        {
+          customer_id:'CUS-0003',
+          customer_code:'CUS-1003',
+          customer_name:'City Mart Retail',
+          company_name:'City Mart',
+          contact_person:'Zainab Khan',
+          phone:'+92-333-222-1100',
+          alternate_phone:'',
+          email:'contact@citymart.pk',
+          address:'Main Road, Gulberg',
+          city:'Lahore',
+          province:'Punjab',
+          customer_type:'Retail',
+          credit_limit:300000.00,
+          opening_balance:85000.00,
+          current_balance:120000.00,
+          tax_number:'NTN-1122334',
+          notes:'Retailer with smaller baskets. Usually pays bi-weekly.',
+          status:'inactive',
+          created_at:addDays(-72)
+        },
+        {
+          customer_id:'CUS-0004',
+          customer_code:'CUS-1004',
+          customer_name:'Saffron Wholesalers',
+          company_name:'Saffron Wholesalers & Co.',
+          contact_person:'Bilal Ahmed',
+          phone:'+92-340-123-4567',
+          alternate_phone:'+92-341-987-6543',
+          email:'billing@saffronwholesale.com',
+          address:'Old Airport Rd, Near Expo Center',
+          city:'Lahore',
+          province:'Punjab',
+          customer_type:'Wholesale',
+          credit_limit:900000.00,
+          opening_balance:250000.00,
+          current_balance:220000.00,
+          tax_number:'NTN-5544332',
+          notes:'High turnover category buyer.',
+          status:'active',
+          created_at:addDays(-10)
+        },
+        {
+          customer_id:'CUS-0005',
+          customer_code:'CUS-1005',
+          customer_name:'Karachi Snacks Co.',
+          company_name:'Karachi Snacks Co.',
+          contact_person:'Rana Usman',
+          phone:'+92-301-555-0001',
+          alternate_phone:'+92-300-555-0002',
+          email:'ops@karachisnacks.com',
+          address:'Korangi Industrial Area',
+          city:'Karachi',
+          province:'Sindh',
+          customer_type:'Distributor',
+          credit_limit:1800000.00,
+          opening_balance:610000.00,
+          current_balance:650000.00,
+          tax_number:'NTN-7788990',
+          notes:'Prefers partial shipments.',
+          status:'blocked',
+          created_at:addDays(-26)
+        },
+        {
+          customer_id:'CUS-0006',
+          customer_code:'CUS-1006',
+          customer_name:'Royal Trading Point',
+          company_name:'Royal Trading Point',
+          contact_person:'Fawad Qureshi',
+          phone:'+92-333-700-2211',
+          alternate_phone:'',
+          email:'royaltrading@rtp.com',
+          address:'Sector F-7, Blue Area',
+          city:'Islamabad',
+          province:'ICT',
+          customer_type:'Retail',
+          credit_limit:250000.00,
+          opening_balance:60000.00,
+          current_balance:43000.00,
+          tax_number:'NTN-9911223',
+          notes:'Seasonal buyer; good for new product trials.',
+          status:'active',
+          created_at:addDays(-6)
+        },
+        {
+          customer_id:'CUS-0007',
+          customer_code:'CUS-1007',
+          customer_name:'Desert Bulk Mart',
+          company_name:'Desert Bulk Mart',
+          contact_person:'Nabeel Khan',
+          phone:'+92-342-000-1112',
+          alternate_phone:'+92-343-000-1113',
+          email:'orders@dbm.pk',
+          address:'Brewery Road',
+          city:'Quetta',
+          province:'Balochistan',
+          customer_type:'Wholesale',
+          credit_limit:650000.00,
+          opening_balance:150000.00,
+          current_balance:175000.00,
+          tax_number:'NTN-2000111',
+          notes:'Consistent weekly orders.',
+          status:'active',
+          created_at:addDays(-12)
+        },
+        {
+          customer_id:'CUS-0008',
+          customer_code:'CUS-1008',
+          customer_name:'Peshawar Traders Union',
+          company_name:'PTU - Peshawar',
+          contact_person:'Mehrab Ali',
+          phone:'+92-331-991-0101',
+          alternate_phone:'+92-332-101-2020',
+          email:'billing@ptu-pk.com',
+          address:'Khyber Bazaar',
+          city:'Peshawar',
+          province:'Khyber Pakhtunkhwa',
+          customer_type:'Distributor',
+          credit_limit:1200000.00,
+          opening_balance:300000.00,
+          current_balance:415000.00,
+          tax_number:'NTN-3004005',
+          notes:'Strong institutional distribution.',
+          status:'active',
+          created_at:addDays(-4)
+        },
+        {
+          customer_id:'CUS-0009',
+          customer_code:'CUS-1009',
+          customer_name:'Multan Retail Hub',
+          company_name:'Multan Retail Hub',
+          contact_person:'Sara Ahmed',
+          phone:'+92-348-222-3000',
+          alternate_phone:'',
+          email:'hello@mrhub.com',
+          address:'Shah Rukn-e-Alam Road',
+          city:'Multan',
+          province:'Punjab',
+          customer_type:'Retail',
+          credit_limit:180000.00,
+          opening_balance:25000.00,
+          current_balance:62000.00,
+          tax_number:'NTN-4400552',
+          notes:'Prefers cash on delivery.',
+          status:'inactive',
+          created_at:addDays(-28)
+        },
+        {
+          customer_id:'CUS-0010',
+          customer_code:'CUS-1010',
+          customer_name:'Hyderabad Trade Circle',
+          company_name:'Hyderabad Trade Circle',
+          contact_person:'Irfan Siddiqui',
+          phone:'+92-321-909-9090',
+          alternate_phone:'+92-321-808-8088',
+          email:'accounts@htc.pk',
+          address:'Latifabad Unit 2',
+          city:'Hyderabad',
+          province:'Sindh',
+          customer_type:'Wholesale',
+          credit_limit:520000.00,
+          opening_balance:130000.00,
+          current_balance:98000.00,
+          tax_number:'NTN-7700011',
+          notes:'Good payment history.',
+          status:'active',
+          created_at:addDays(-3)
+        },
+        {
+          customer_id:'CUS-0011',
+          customer_code:'CUS-1011',
+          customer_name:'Faisalabad Wholesale Mart',
+          company_name:'Faisalabad Wholesale Mart',
+          contact_person:'Abdul Rahman',
+          phone:'+92-333-600-1212',
+          alternate_phone:'+92-333-600-1313',
+          email:'sales@fwm.pk',
+          address:'Sargodha Road',
+          city:'Faisalabad',
+          province:'Punjab',
+          customer_type:'Wholesale',
+          credit_limit:800000.00,
+          opening_balance:200000.00,
+          current_balance:265000.00,
+          tax_number:'NTN-8800222',
+          notes:'Seasonal promotions; needs statement every month.',
+          status:'active',
+          created_at:addDays(-20)
+        }
+      ];
+
+      // Demo sales totals per customer (for charts)
+      const SALES_BY_CUSTOMER = {
+        'CUS-0001': 12500000,
+        'CUS-0002': 18600000,
+        'CUS-0003': 5200000,
+        'CUS-0004': 9800000,
+        'CUS-0005': 7400000,
+        'CUS-0006': 3100000,
+        'CUS-0007': 6100000,
+        'CUS-0008': 8700000,
+        'CUS-0009': 2400000,
+        'CUS-0010': 5600000,
+        'CUS-0011': 6700000
+      };
+
+      function addDays(offset){
+        const d = new Date();
+        d.setDate(d.getDate() + offset);
+        return d.toISOString().slice(0,10);
+      }
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>'"]/g, (c) => ({
+        '&':'&amp;','<':'<','>':'>','\'':'&#39;','"':'"'
+      }[c]));
+
+      const formatMoney = (value) => {
+        const n = Number(value) || 0;
+        return 'PKR ' + n.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      const statusBadge = (status) => {
+        const s = String(status||'').toLowerCase();
+        if (s === 'active') return '<span class="badge status-badge badge-active">Active</span>';
+        if (s === 'inactive') return '<span class="badge status-badge badge-inactive">Inactive</span>';
+        return '<span class="badge status-badge badge-blocked">Blocked</span>';
+      };
+
+      const toMonthKey = (dateStr) => {
+        const d = new Date(dateStr);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      };
+
+      let customers = demoCustomersBase.map(c => ({...c, current_balance: Number(c.current_balance||0)}));
+
+      let dt;
+      const $tableEl = $('#customersTable');
+      const $tbody = $tableEl.find('tbody');
+
+      let statementCustomerId = null;
+      let statementPage = 0; // demo paging for period blocks
+
+      function applyFilters(){
+        const status = $('#filterCustomerStatus').val();
+        const type = $('#filterCustomerType').val();
+        const city = $('#filterCity').val();
+        const start = $('#filterStartDate').val();
+        const end = $('#filterEndDate').val();
+
+        const sDate = start ? new Date(start) : null;
+        const eDate = end ? new Date(end) : null;
+
+        return customers.filter(c => {
+          if (status && String(c.status||'').toLowerCase() !== String(status).toLowerCase()) return false;
+          if (type && String(c.customer_type||'').toLowerCase() !== String(type).toLowerCase()) return false;
+          if (city && String(c.city||'') !== String(city)) return false;
+
+          if (sDate) {
+            const cd = new Date(c.created_at);
+            if (cd < sDate) return false;
+          }
+          if (eDate) {
+            const cd = new Date(c.created_at);
+            if (cd > eDate) return false;
+          }
+          return true;
+        });
+      }
+
+      function renderKPIs(){
+        const rows = applyFilters();
+
+        const total = rows.length;
+        const active = rows.filter(c => c.status === 'active').length;
+        const credit = rows.filter(c => Number(c.credit_limit||0) > 0).length;
+        const newThisMonth = rows.filter(c => toMonthKey(c.created_at) === currentMonthKey).length;
+
+        const totalReceivable = rows.reduce((sum,c) => sum + Number(c.current_balance||0), 0);
+
+        const topSales = rows
+          .map(c => ({c, sales: SALES_BY_CUSTOMER[c.customer_id] || 0}))
+          .sort((a,b) => b.sales - a.sales)[0];
+
+        $('#kpiTotalCustomers').text(total);
+        $('#kpiActiveCustomers').text(active);
+        $('#kpiCreditCustomers').text(credit);
+        $('#kpiNewThisMonth').text(newThisMonth);
+        $('#kpiTotalReceivable').text(formatMoney(totalReceivable));
+        $('#kpiTopCustomerSales').text(formatMoney(topSales ? topSales.sales : 0));
+      }
+
+      function customerRowHtml(c){
+        return `
+          <tr>
+            <td class="fw-bold">${escapeHtml(c.customer_code)}</td>
+            <td>${escapeHtml(c.customer_name)}</td>
+            <td>${escapeHtml(c.company_name)}</td>
+            <td>${escapeHtml(c.contact_person || '—')}</td>
+            <td>${escapeHtml(c.phone || '—')}</td>
+            <td>${escapeHtml(c.email || '—')}</td>
+            <td>${escapeHtml(c.city || '—')}</td>
+            <td class="fw-semibold">${escapeHtml(formatMoney(c.credit_limit))}</td>
+            <td class="fw-semibold">${escapeHtml(formatMoney(c.current_balance))}</td>
+            <td>${escapeHtml(c.customer_type)}</td>
+            <td>${statusBadge(c.status)}</td>
+            <td>${escapeHtml(c.created_at)}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(c.customer_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(c.customer_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="statement" data-id="${escapeHtml(c.customer_id)}"><i class="fa-solid fa-receipt me-2"></i>Statement</a></li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(c.customer_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+
+      function renderRows(){
+        $tbody.empty();
+        for (const c of applyFilters()){
+          $tbody.append(customerRowHtml(c));
+        }
+      }
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[11,'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0,1,2,3,4] },
+          { responsivePriority: 2, targets: [5,6,7,8] },
+          { responsivePriority: 3, targets: [9,10] },
+          { responsivePriority: 4, targets: [11] },
+          { orderable: false, targets: -1 },
+        ],
+        buttons: [
+          { extend: 'colvis', className: 'btn-sm btn', text: '<i class="fa-solid fa-columns me-1"></i>Columns' },
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions },
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let charts = { city:null, growth:null, type:null, top:null };
+
+      function destroyCharts(){
+        for (const k of Object.keys(charts)){
+          if (charts[k]) { charts[k].destroy(); charts[k]=null; }
+        }
+      }
+
+      function renderCharts(){
+        const rows = applyFilters();
+        destroyCharts();
+
+        // Customers by City (bar)
+        const cityMap = new Map();
+        for (const c of rows){
+          const k = c.city || '—';
+          cityMap.set(k, (cityMap.get(k) || 0) + 1);
+        }
+        const cityEntries = Array.from(cityMap.entries()).sort((a,b)=> b[1]-a[1]).slice(0,6);
+        const cityLabels = cityEntries.length ? cityEntries.map(x=>x[0]) : ['—'];
+        const cityData = cityEntries.length ? cityEntries.map(x=>x[1]) : [0];
+
+        const ctxCity = document.getElementById('chartCustomersByCity');
+        if (ctxCity) {
+          charts.city = new Chart(ctxCity.getContext('2d'),{
+            type:'bar',
+            data:{
+              labels: cityLabels,
+              datasets:[{ label:'Customers', data: cityData, backgroundColor:'rgba(11,42,74,.35)', borderColor:'rgba(11,42,74,1)', borderWidth:1 }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true } }, scales:{ y:{ beginAtZero:true } } }
+          });
+        }
+
+        // Customer Growth Trend (line, last 6 months)
+        const monthSet = new Set();
+        // last 6 months keys including current month
+        for (let i=5;i>=0;i--){
+          const d = new Date(now);
+          d.setMonth(d.getMonth()-i);
+          monthSet.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+        }
+        const monthKeys = Array.from(monthSet);
+        const growthMap = new Map(monthKeys.map(k=>[k,0]));
+        for (const c of rows){
+          const k = toMonthKey(c.created_at);
+          if (growthMap.has(k)) growthMap.set(k, growthMap.get(k)+1);
+        }
+
+        const growthLabels = monthKeys.map(k => {
+          const [y,m] = k.split('-');
+          const dt = new Date(Number(y), Number(m)-1, 1);
+          return dt.toLocaleString('en-US',{ month:'short' });
+        });
+        const growthData = monthKeys.map(k => growthMap.get(k) || 0);
+
+        const ctxGrowth = document.getElementById('chartCustomerGrowthTrend');
+        if (ctxGrowth) {
+          charts.growth = new Chart(ctxGrowth.getContext('2d'),{
+            type:'line',
+            data:{
+              labels: growthLabels,
+              datasets:[{ label:'New Customers', data: growthData, borderColor:'rgba(13,110,253,1)', backgroundColor:'rgba(13,110,253,.12)', tension:0.35, fill:true }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true } }, scales:{ y:{ beginAtZero:true } } }
+          });
+        }
+
+        // Customer Type Distribution (doughnut)
+        const typeMap = new Map([["Retail",0],["Wholesale",0],["Distributor",0]]);
+        for (const c of rows){
+          const t = c.customer_type;
+          typeMap.set(t, (typeMap.get(t)||0) + 1);
+        }
+        const typeLabels = ['Retail','Wholesale','Distributor'];
+        const typeData = typeLabels.map(t=>typeMap.get(t)||0);
+        const ctxType = document.getElementById('chartCustomerTypeDistribution');
+        if (ctxType) {
+          const bg = ['rgba(11,42,74,.35)','rgba(13,110,253,.30)','rgba(25,135,84,.30)'];
+          charts.type = new Chart(ctxType.getContext('2d'),{
+            type:'doughnut',
+            data:{ labels:typeLabels, datasets:[{ data:typeData, backgroundColor:bg, borderWidth:0 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } }
+          });
+        }
+
+        // Top Customers by Sales (bar)
+        const topEntries = rows
+          .map(c => ({ id:c.customer_id, name:c.customer_name, sales: SALES_BY_CUSTOMER[c.customer_id] || 0 }))
+          .sort((a,b)=>b.sales-a.sales)
+          .slice(0,5);
+
+        const topLabels = topEntries.length ? topEntries.map(x=>x.name) : ['—'];
+        const topData = topEntries.length ? topEntries.map(x=>x.sales) : [0];
+
+        const ctxTop = document.getElementById('chartTopCustomersBySales');
+        if (ctxTop) {
+          charts.top = new Chart(ctxTop.getContext('2d'),{
+            type:'bar',
+            data:{ labels:topLabels, datasets:[{ label:'Sales', data:topData, backgroundColor:'rgba(253,126,20,.35)', borderColor:'rgba(253,126,20,1)', borderWidth:1 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:true } }, scales:{ y:{ beginAtZero:true } } }
+          });
+        }
+      }
+
+      function refreshAll(){
+        if (dt) { dt.destroy(); dt = null; }
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+        renderCharts();
+      }
+
+      function getCustomerById(id){ return customers.find(c => c.customer_id === id); }
+
+      function populateCitySelect(){
+        const unique = Array.from(new Set(customers.map(c=>c.city).filter(Boolean))).sort();
+        const options = unique.map(ct => `<option value="${escapeHtml(ct)}">${escapeHtml(ct)}</option>`).join('');
+        $('#filterCity').append(options);
+      }
+
+      function generateCustomerCode(){
+        const nums = customers
+          .map(c => parseInt(String(c.customer_code||'').replace(/[^0-9]/g,''),10))
+          .filter(n => Number.isFinite(n));
+        const next = nums.length ? Math.max(...nums) + 1 : 1001;
+        return `CUS-${next}`;
+      }
+
+      function resetAddModal(){
+        $('#addCustomerCode').val(generateCustomerCode());
+        $('#addCustomerName').val('');
+        $('#addCompanyName').val('');
+        $('#addContactPerson').val('');
+        $('#addPhone').val('');
+        $('#addAlternatePhone').val('');
+        $('#addEmail').val('');
+        $('#addAddress').val('');
+        $('#addCity').val('');
+        $('#addProvince').val('');
+
+        $('#addCustomerType').val('Retail');
+        $('#addCreditLimit').val('');
+        $('#addOpeningBalance').val('');
+        $('#addTaxNumber').val('');
+        $('#addNotes').val('');
+        $('#addStatus').val('active');
+      }
+
+      function populateFormFromCustomer(c, prefix){
+        // prefix: add|edit
+        $(`#${prefix}CustomerIdHidden`).val(c.customer_id);
+        $(`#${prefix}CustomerCode`).val(c.customer_code);
+        $(`#${prefix}CustomerName`).val(c.customer_name);
+        $(`#${prefix}CompanyName`).val(c.company_name);
+        $(`#${prefix}ContactPerson`).val(c.contact_person || '');
+        $(`#${prefix}Phone`).val(c.phone || '');
+        $(`#${prefix}AlternatePhone`).val(c.alternate_phone || '');
+        $(`#${prefix}Email`).val(c.email || '');
+        $(`#${prefix}Address`).val(c.address || '');
+        $(`#${prefix}City`).val(c.city || '');
+        $(`#${prefix}Province`).val(c.province || '');
+
+        $(`#${prefix}CustomerType`).val(c.customer_type || 'Retail');
+        $(`#${prefix}CreditLimit`).val(Number(c.credit_limit || 0));
+        $(`#${prefix}OpeningBalance`).val(Number(c.opening_balance || 0));
+        $(`#${prefix}TaxNumber`).val(c.tax_number || '');
+        $(`#${prefix}Notes`).val(c.notes || '');
+        $(`#${prefix}Status`).val(c.status || 'active');
+      }
+
+      function fillViewModal(c){
+        $('#viewCustomerName').text(c.customer_name || '—');
+        $('#viewCompanyName').text(c.company_name || '—');
+        $('#viewCustomerCode').text(c.customer_code || '—');
+
+        $('#viewPhone').text(c.phone || '—');
+        $('#viewEmail').text(c.email || '—');
+        $('#viewCityProv').text(`${c.city || '—'}${c.province ? ' • ' + c.province : ''}`);
+        $('#viewCustomerType').text(c.customer_type || '—');
+        $('#viewStatusContainer').html(statusBadge(c.status));
+
+        $('#viewCreditLimit').text(formatMoney(c.credit_limit));
+        $('#viewCurrentBalance').text(formatMoney(c.current_balance));
+        $('#viewCreatedDate').text(c.created_at || '—');
+
+        $('#viewContactPerson').text(c.contact_person || '—');
+        $('#viewAlternatePhone').text(c.alternate_phone || '—');
+        $('#viewAddress').text(c.address || '—');
+        $('#viewTaxNumber').text(c.tax_number || '—');
+        $('#viewNotes').text(c.notes || '—');
+      }
+
+      function fillEditModal(c){
+        $('#editCustomerIdHidden').val(c.customer_id);
+        $('#editCustomerCode').val(c.customer_code);
+        $('#editCustomerName').val(c.customer_name);
+        $('#editCompanyName').val(c.company_name);
+        $('#editContactPerson').val(c.contact_person || '');
+        $('#editPhone').val(c.phone || '');
+        $('#editAlternatePhone').val(c.alternate_phone || '');
+        $('#editEmail').val(c.email || '');
+        $('#editAddress').val(c.address || '');
+        $('#editCity').val(c.city || '');
+        $('#editProvince').val(c.province || '');
+
+        $('#editCustomerType').val(c.customer_type || 'Retail');
+        $('#editCreditLimit').val(Number(c.credit_limit || 0));
+        $('#editOpeningBalance').val(Number(c.opening_balance || 0));
+        $('#editTaxNumber').val(c.tax_number || '');
+        $('#editNotes').val(c.notes || '');
+        $('#editStatus').val(c.status || 'active');
+      }
+
+      // Demo statement ledger (generated per customer)
+      function buildDemoStatementTransactions(c){
+        const base = [];
+        const mkDate = (offset) => {
+          const d = new Date();
+          d.setDate(d.getDate() + offset);
+          return d.toISOString().slice(0,10);
+        };
+
+        // Deterministic-ish demo: use customer_id chars for offsets/amounts
+        let seed = 0;
+        for (let i=0;i<String(c.customer_id).length;i++) seed += String(c.customer_id).charCodeAt(i);
+
+        const periodStartOffsets = [-90,-70,-50,-30,-10];
+        const typeCycle = ['Invoice','Payment','Invoice','Payment','Adjustment'];
+
+        for (let i=0;i<5;i++){
+          const debit = (typeCycle[i].toLowerCase().includes('invoice')) ? (50000 + (seed+i*13)%800000) : 0;
+          const credit = (typeCycle[i].toLowerCase().includes('payment')) ? (20000 + (seed+i*17)%400000) : 0;
+          const adj = (typeCycle[i].toLowerCase().includes('adjustment')) ? (10000 + (seed+i*23)%200000) : 0;
+
+          const debitVal = debit || 0;
+          const creditVal = credit || 0;
+          const ref = `${typeCycle[i].slice(0,3).toUpperCase()}-${(seed+i*97)%9000}`;
+
+          base.push({
+            date: mkDate(periodStartOffsets[i]),
+            reference: ref,
+            type: typeCycle[i],
+            debit: debitVal,
+            credit: creditVal + adj
+          });
+        }
+
+        // Sort by date
+        base.sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+        // Build running balance starting from opening_balance
+        let running = Number(c.opening_balance || 0);
+        const rows = [];
+        for (const t of base){
+          running = running + Number(t.debit||0) - Number(t.credit||0);
+          rows.push({
+            ...t,
+            runningBalance: running
+          });
+        }
+        return rows;
+      }
+
+      function renderStatementForCustomer(c){
+        const tx = buildDemoStatementTransactions(c);
+        const pageSize = 3;
+        const pages = Math.max(1, Math.ceil(tx.length / pageSize));
+        statementPage = Math.min(statementPage, pages-1);
+
+        const startIdx = statementPage * pageSize;
+        const slice = tx.slice(startIdx, startIdx + pageSize);
+
+        $('#statementCustomerTitle').text(`${c.customer_name || '—'}`);
+        $('#statementCustomerMeta').text(`${c.company_name || ''} • ${c.customer_code || ''}`);
+        $('#statementCreditLimit').text(formatMoney(c.credit_limit));
+        $('#statementCurrentBalance').text(formatMoney(c.current_balance));
+        $('#statementPeriod').text(`Page ${statementPage+1} of ${pages}`);
+
+        const $tbody = $('#statementTbody');
+        $tbody.empty();
+
+        for (const t of slice){
+          $tbody.append(`
+            <tr>
+              <td>${escapeHtml(t.date)}</td>
+              <td>${escapeHtml(t.reference)}</td>
+              <td>${escapeHtml(t.type)}</td>
+              <td class="text-end">${t.debit ? escapeHtml(formatMoney(t.debit)) : '—'}</td>
+              <td class="text-end">${t.credit ? escapeHtml(formatMoney(t.credit)) : '—'}</td>
+              <td class="text-end">${escapeHtml(formatMoney(t.runningBalance))}</td>
+            </tr>
+          `);
+        }
+
+        // attach tx/pages for paging
+        $('#customerStatementModal').data('txAll', tx);
+        $('#customerStatementModal').data('statementPages', pages);
+      }
+
+      function reRenderStatementPage(){
+        const c = getCustomerById(statementCustomerId);
+        if (!c) return;
+        renderStatementForCustomer(c);
+      }
+
+      // Bind events (only once)
+      let eventsBound = false;
+      function bindEventsOnce(){
+        if (eventsBound) return;
+        eventsBound = true;
+
+        $('#btnRefresh').on('click', () => refreshAll());
+        $('#btnApplyFilters').on('click', () => refreshAll());
+        $('#btnResetFilters').on('click', () => {
+          $('#filterCustomerStatus').val('');
+          $('#filterCustomerType').val('');
+          $('#filterCity').val('');
+          $('#filterStartDate').val('');
+          $('#filterEndDate').val('');
+          refreshAll();
+        });
+
+        // Add modal reset
+        document.getElementById('addCustomerModal').addEventListener('show.bs.modal', () => {
+          resetAddModal();
+          // also populate current select defaults already present
+        });
+
+        $('#addCustomerForm').on('submit', (ev) => {
+          ev.preventDefault();
+
+          const code = $('#addCustomerCode').val();
+          const name = $('#addCustomerName').val();
+          const company = $('#addCompanyName').val();
+          const contact_person = $('#addContactPerson').val();
+          const phone = $('#addPhone').val();
+          const alternate_phone = $('#addAlternatePhone').val();
+          const email = $('#addEmail').val();
+          const address = $('#addAddress').val();
+          const city = $('#addCity').val();
+          const province = $('#addProvince').val();
+          const customer_type = $('#addCustomerType').val();
+          const credit_limit = Number($('#addCreditLimit').val() || 0);
+          const opening_balance = Number($('#addOpeningBalance').val() || 0);
+          const tax_number = $('#addTaxNumber').val();
+          const notes = $('#addNotes').val();
+          const status = $('#addStatus').val();
+
+          if (!code || !name || !company || !customer_type) return;
+          if (!Number.isFinite(credit_limit) || credit_limit < 0) return;
+          if (!Number.isFinite(opening_balance) || opening_balance < 0) return;
+
+          // generate numeric customer_id
+          const newIdNum = Math.floor(Date.now() + Math.random()*1000);
+          const newId = `CUS-${String(newIdNum).slice(-4)}`;
+
+          const newCustomer = {
+            customer_id: newId,
+            customer_code: code,
+            customer_name: name,
+            company_name: company,
+            contact_person,
+            phone,
+            alternate_phone,
+            email,
+            address,
+            city,
+            province,
+            customer_type,
+            credit_limit,
+            opening_balance,
+            current_balance: opening_balance,
+            tax_number,
+            notes,
+            status,
+            created_at: new Date().toISOString().slice(0,10)
+          };
+
+          customers.unshift(newCustomer);
+
+          // adjust top sales mapping for demo charts
+          SALES_BY_CUSTOMER[newId] = Math.round(500000 + Math.random()*15000000);
+
+          bootstrap.Modal.getInstance(document.getElementById('addCustomerModal'))?.hide();
+          refreshAll();
+        });
+
+        // Edit modal reset on show
+        document.getElementById('editCustomerModal').addEventListener('show.bs.modal', () => {
+          // no-op: filled when action is clicked
+        });
+
+        $('#editCustomerForm').on('submit', (ev) => {
+          ev.preventDefault();
+
+          const id = $('#editCustomerIdHidden').val();
+          const c = getCustomerById(id);
+          if (!c) return;
+
+          c.customer_name = $('#editCustomerName').val();
+          c.company_name = $('#editCompanyName').val();
+          c.contact_person = $('#editContactPerson').val();
+          c.phone = $('#editPhone').val();
+          c.alternate_phone = $('#editAlternatePhone').val();
+          c.email = $('#editEmail').val();
+          c.address = $('#editAddress').val();
+          c.city = $('#editCity').val();
+          c.province = $('#editProvince').val();
+
+          c.customer_type = $('#editCustomerType').val();
+          c.credit_limit = Number($('#editCreditLimit').val() || 0);
+          c.opening_balance = Number($('#editOpeningBalance').val() || 0);
+          c.tax_number = $('#editTaxNumber').val();
+          c.notes = $('#editNotes').val();
+          c.status = $('#editStatus').val();
+
+          // keep current_balance unchanged for demo unless it should reflect opening
+          // (to avoid surprising behavior), update to opening_balance if current_balance equals old opening
+          // We'll do simple: set current_balance = c.opening_balance
+          c.current_balance = Number(c.opening_balance || 0);
+
+          bootstrap.Modal.getInstance(document.getElementById('editCustomerModal'))?.hide();
+          refreshAll();
+        });
+
+        // Table dropdown actions
+        $tableEl.on('click', 'a[data-action]', function(ev){
+          ev.preventDefault();
+          const action = this.getAttribute('data-action');
+          const id = this.getAttribute('data-id');
+          const c = getCustomerById(id);
+          if (!c) return;
+
+          if (action === 'view'){
+            fillViewModal(c);
+            new bootstrap.Modal(document.getElementById('viewCustomerModal')).show();
+          }
+          if (action === 'edit'){
+            fillEditModal(c);
+            new bootstrap.Modal(document.getElementById('editCustomerModal')).show();
+          }
+          if (action === 'statement'){
+            statementCustomerId = id;
+            statementPage = 0;
+            renderStatementForCustomer(c);
+            new bootstrap.Modal(document.getElementById('customerStatementModal')).show();
+          }
+          if (action === 'delete'){
+            $('#deleteCustomerIdHidden').val(c.customer_id);
+            $('#deleteCustomerTitle').text(`Delete ${c.customer_code}?`);
+            $('#deleteCustomerMessage').text(`${c.customer_name || c.company_name || ''}. This action cannot be undone.`);
+            new bootstrap.Modal(document.getElementById('deleteCustomerModal')).show();
+          }
+        });
+
+        $('#deleteCustomerForm').on('submit', (ev) => {
+          ev.preventDefault();
+          const id = $('#deleteCustomerIdHidden').val();
+          customers = customers.filter(x => x.customer_id !== id);
+          // cleanup demo sales
+          delete SALES_BY_CUSTOMER[id];
+          bootstrap.Modal.getInstance(document.getElementById('deleteCustomerModal'))?.hide();
+          refreshAll();
+        });
+
+        $('#btnStatementPrev').on('click', () => {
+          const pages = $('#customerStatementModal').data('statementPages') || 1;
+          statementPage = Math.max(0, statementPage - 1);
+          renderStatementForCustomer(getCustomerById(statementCustomerId));
+        });
+        $('#btnStatementNext').on('click', () => {
+          const pages = $('#customerStatementModal').data('statementPages') || 1;
+          statementPage = Math.min(pages - 1, statementPage + 1);
+          renderStatementForCustomer(getCustomerById(statementCustomerId));
+        });
+      }
+
+      // init selects + default dates + bind events + init
+      function init(){
+        // populate city select once
+        populateCitySelect();
+
+        // set reasonable default date range (optional)
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 30);
+        $('#filterEndDate').val(end.toISOString().slice(0,10));
+        $('#filterStartDate').val(start.toISOString().slice(0,10));
+
+        // add form default
+        resetAddModal();
+
+        bindEventsOnce();
+        refreshAll();
+      }
+
+      init();
+
+      // End of patch
+
+    })();
+  </script>
+
+</body>
+</html>
+
+

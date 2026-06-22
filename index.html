@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Baryal Biscuit Factory ERP Admin Dashboard</title>
+
+  <!-- AdminLTE 4 (Bootstrap 5) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <!-- OverlayScrollbars -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <!-- DataTables + Buttons (Bootstrap 5) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a; /* deep blue */
+      --erp-surface:#ffffff;
+      --erp-muted:#f3f4f6;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.10), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.08), transparent 55%),
+        #f8fafc;
+    }
+
+    /* Dark sidebar, white content */
+    .main-sidebar{
+      background: var(--erp-dark-sidebar) !important;
+    }
+    .main-sidebar .brand-link{
+      background: linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75));
+    }
+    .main-sidebar .nav-treeview{
+      background: rgba(255,255,255,.03);
+    }
+
+    /* KPI cards */
+    .kpi-card{
+      border-radius: .95rem;
+      border: 1px solid rgba(11,42,74,.12);
+      box-shadow: 0 10px 24px rgba(11,42,74,.06);
+      overflow: hidden;
+    }
+    .kpi-top{
+      height: 10px;
+      background: linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85));
+    }
+    .kpi-value{
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .kpi-sub{
+      font-size: .875rem;
+      color: rgba(0,0,0,.6);
+    }
+
+    /* Floating label spacing */
+    .form-floating > label{ padding-top: .75rem; }
+
+    /* Low stock pulse */
+    .alert-pulse{
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse{
+      0%{ box-shadow: 0 0 0 0 rgba(220,53,69,.35); }
+      70%{ box-shadow: 0 0 0 12px rgba(220,53,69,0); }
+      100%{ box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+    }
+
+    /* Dark mode integration */
+    html[data-bs-theme="dark"]{
+      --erp-surface:#0f172a;
+      --erp-muted:#0b1220;
+    }
+    html[data-bs-theme="dark"] body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.25), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.18), transparent 55%),
+        #0b1220;
+    }
+    html[data-bs-theme="dark"] .content-wrapper{
+      background: var(--erp-surface) !important;
+    }
+    html[data-bs-theme="dark"] .card{
+      --bs-card-bg: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.08) !important;
+    }
+    html[data-bs-theme="dark"] .table{
+      color: rgba(255,255,255,.88);
+    }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <!-- Login Page -->
+  <div class="hold-transition login-page">
+    <div class="login-box">
+      <div class="card card-outline" style="border-color: rgba(11,42,74,.22);">
+        <div class="card-header text-center py-4">
+          <a href="#" class="brand-link">
+            <span class="brand-text fw-bold fs-4" style="color:#fff;">Baryal Biscuit Factory ERP</span>
+          </a>
+          <div class="text-muted mt-1">Manufacturing • Procurement • Production • Finance</div>
+
+        <div class="card-body">
+          <div class="mb-4">
+            <div class="d-flex align-items-center justify-content-center gap-3">
+              <div class="icon-circle" style="width:58px;height:58px;border-radius:18px;background: rgba(11,42,74,.10);display:flex;align-items:center;justify-content:center;">
+                <i class="fa-solid fa-bread-slice" style="color:var(--erp-primary);font-size:1.5rem;"></i>
+              </div>
+              <div class="text-start">
+                <div class="fw-semibold fs-6">Welcome back</div>
+                <div class="text-muted small">Sign in to your ERP Admin Console</div>
+            </div>
+
+          <form id="loginForm" class="needs-validation" novalidate>
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="username" name="username" placeholder="Username" required />
+              <label for="username"><i class="fa-solid fa-user me-2"></i>Username</label>
+              <div class="invalid-feedback">Please enter your username.</div>
+
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
+              <label for="password"><i class="fa-solid fa-lock me-2"></i>Password</label>
+              <div class="invalid-feedback">Please enter your password.</div>
+
+            <div class="row align-items-center mb-2">
+              <div class="col-7">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="remember" id="remember" />
+                  <label class="form-check-label" for="remember">Remember Me</label>
+                </div>
+              <div class="col-5 text-end">
+                <a href="#" class="text-decoration-none" style="color:var(--erp-primary);">Forgot Password</a>
+              </div>
+
+            <div class="d-grid gap-2 mt-4">
+              <button class="btn btn-primary" id="btnSignIn" type="submit" style="background:var(--erp-primary);border-color:var(--erp-primary);">
+                <i class="fa-solid fa-right-to-bracket me-2"></i>Sign In
+              </button>
+            </div>
+
+            <div class="text-center mt-3 small text-muted">
+              <span class="me-2">Demo mode</span>
+              <button type="button" id="enterDemo" class="btn btn-link p-0 text-decoration-none" style="color:var(--erp-primary);">
+                Enter Dashboard
+              </button>
+            </div>
+          </form>
+        </div>
+
+      <div class="text-center mt-3 small text-muted">
+        © <span id="year"></span> Baryal Biscuit Factory ERP System • Version 1.0
+      </div>
+  </div>
+
+  <!-- Dashboard Shell -->
+  <div id="appShell" class="wrapper" style="display:none;">
+    <!-- Top Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+      <div class="container-fluid">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+              <i class="fa-solid fa-bars"></i>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Company / Search -->
+        <div class="d-flex align-items-center gap-2 ms-3 flex-grow-1">
+          <div class="d-none d-md-block">
+            <span class="fw-bold" style="color:var(--erp-primary);">Baryal ERP</span>
+            <span class="badge rounded-pill ms-2" style="background:rgba(11,42,74,.10);color:var(--erp-primary);">Biscuit Manufacturing</span>
+          </div>
+
+          <div class="search-box flex-grow-1" style="max-width:560px;">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" style="background:rgba(11,42,74,.06);border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search modules, orders, products, employees..." id="globalSearch" />
+              <button class="btn btn-primary" style="background:var(--erp-primary);border-color:var(--erp-primary);" type="button" id="btnSearch">
+                Search
+              </button>
+            </div>
+        </div>
+
+        <!-- Right items -->
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item dropdown">
+            <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+              <i class="fa-regular fa-bell"></i>
+              <span class="badge text-bg-danger navbar-badge">3</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="dropdown-header">Notifications</li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>Low stock: Wheat Flour</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-box-open text-warning me-2"></i>Goods receipt pending: INV-1021</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-truck-fast text-info me-2"></i>Delivery scheduled for SO-1042</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-center" href="#"><strong>View all notifications</strong></a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+              <i class="fa-regular fa-message"></i>
+              <span class="badge text-bg-success navbar-badge">5</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="dropdown-header">Messages</li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2 text-primary"></i>HR: Attendance approval needed</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-industry-windows me-2 text-success"></i>Production: Batch A-204 QC ready</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-file-invoice me-2 text-warning"></i>Finance: Invoice INV-1098 pending</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-center" href="#"><strong>View all messages</strong></a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+              <img src="https://placehold.co/36x36" class="rounded-circle" alt="User" />
+              <span class="d-none d-md-inline">Admin</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li class="dropdown-header">
+                <strong>Admin Profile</strong>
+              </li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-shield me-2"></i>Permissions</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+              <li class="nav-item"><a href="#roles" class="nav-link"><i class="fa-solid fa-user-tag me-2"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="#permissions" class="nav-link"><i class="fa-solid fa-key me-2"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="#users" class="nav-link"><i class="fa-solid fa-users me-2"></i><p>Users</p></a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link"><i class="nav-icon fa-solid fa-people-group"></i><p>HR Management</p><i class="right fa-solid fa-angle-left"></i></a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item"><a href="#departments" class="nav-link"><i class="fa-regular fa-building me-2"></i><p>Departments</p></a></li>
+              <li class="nav-item"><a href="#designations" class="nav-link"><i class="fa-solid fa-id-badge me-2"></i><p>Designations</p></a></li>
+              <li class="nav-item"><a href="#employees" class="nav-link"><i class="fa-solid fa-user me-2"></i><p>Employees</p></a></li>
+              <li class="nav-item"><a href="#attendance" class="nav-link"><i class="fa-solid fa-calendar-check me-2"></i><p>Attendance</p></a></li>
+              <li class="nav-item"><a href="#leave" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i><p>Leave Management</p></a></li>
+              <li class="nav-item"><a href="#payroll" class="nav-link"><i class="fa-solid fa-money-bill-wave me-2"></i><p>Payroll</p></a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link"><i class="nav-icon fa-solid fa-boxes-stacked"></i><p>Inventory Management</p><i class="right fa-solid fa-angle-left"></i></a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item"><a href="#warehouses" class="nav-link"><i class="fa-regular fa-building me-2"></i><p>Warehouses</p></a></li>
+              <li class="nav-item"><a href="#rawmaterials" class="nav-link"><i class="fa-solid fa-cookie-bite me-2"></i><p>Raw Materials</p></a></li>
+              <li class="nav-item"><a href="#products" class="nav-link"><i class="fa-solid fa-bread-slice me-2"></i><p>Products</p></a></li>
+              <li class="nav-item"><a href="#movements" class="nav-link"><i class="fa-solid fa-right-left me-2"></i><p>Stock Movements</p></a></li>
+              <li class="nav-item"><a href="#adjustments" class="nav-link"><i class="fa-solid fa-wrench me-2"></i><p>Stock Adjustments</p></a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link"><i class="nav-icon fa-solid fa-receipt"></i><p>Purchase Management</p><i class="right fa-solid fa-angle-left"></i></a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item"><a href="#suppliers" class="nav-link"><i class="fa-solid fa-truck-fast me-2"></i><p>Suppliers</p></a></li>
+              <li class="nav-item"><a href="#purchaserequests" class="nav-link"><i class="fa-solid fa-file-signature me-2"></i><p>Purchase Requests</p></a></li>
+              <li class="nav-item"><a href="#purchaseorders" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i><p>Purchase Orders</p></a></li>
+              <li class="nav-item"><a href="#goodsreceipts" class="nav-link"><i class="fa-solid fa-box-open me-2"></i><p>Goods Receipts</p></a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link"><i class="nav-icon fa-solid fa-industry-windows"></i><p>Production Management</p><i class="right fa-solid fa-angle-left"></i></a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item"><a href="#recipes" class="nav-link"><i class="fa-solid fa-list-check me-2"></i><p>Recipes</p></a></li>
+              <li class="nav-item"><a href="#productionplans" class="nav-link"><i class="fa-regular fa-calendar me-2"></i><p>Production Plans</p></a></li>
+              <li

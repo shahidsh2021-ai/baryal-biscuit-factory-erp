@@ -1,0 +1,1952 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sales Orders Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem;
+      border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06);
+      overflow:hidden;
+      background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem;
+      border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06);
+      overflow:hidden;
+      background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-draft{ background:rgba(108,117,125,.12); color:#495057; border-color:rgba(108,117,125,.25); }
+    .badge-confirmed{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-processing{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-delivered{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-cancelled{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+
+    .payment-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .pay-paid{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .pay-partial{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .pay-unpaid{ background:rgba(108,117,125,.12); color:#495057; border-color:rgba(108,117,125,.25); }
+
+    .table thead th{
+      font-weight:850;
+      color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04);
+      border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85));
+      color:#fff;
+    }
+
+    .chart-card{
+      border-radius:1rem;
+      border:1px solid rgba(11,42,74,.10);
+      background:rgba(255,255,255,.92);
+      box-shadow:0 10px 24px rgba(11,42,74,.05);
+      overflow:hidden;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card,
+    [data-bs-theme="dark"] .chart-card{
+      background:rgba(255,255,255,.03);
+      border-color:rgba(255,255,255,.10) !important;
+      box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge,
+    [data-bs-theme="dark"] .payment-badge{ color:rgba(255,255,255,.92); }
+
+    .chart-title{
+      font-weight:900;
+      color:var(--erp-primary);
+      display:flex;
+      align-items:center;
+      gap:.55rem;
+    }
+
+    .order-row-active{ background:rgba(11,42,74,.04) !important; }
+
+    .detail-label{
+      color:rgba(0,0,0,.62);
+      font-weight:700;
+    }
+
+    [data-bs-theme="dark"] .detail-label{ color:rgba(255,255,255,.65); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-receipt text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Sales Orders Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Orders • Payments • Delivery</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="../dashboard.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa-solid fa-industry"></i><p>Production</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="../production/recipes_bom.html" class="nav-link"><i class="fa-solid fa-flask me-2"></i><p>Recipes / BOM</p></a></li>
+                  <li class="nav-item"><a href="../production/production_orders.html" class="nav-link"><i class="fa-solid fa-clipboard-list me-2"></i><p>Production Orders</p></a></li>
+                  <li class="nav-item"><a href="../production/production_batches.html" class="nav-link"><i class="fa-solid fa-layer-group me-2"></i><p>Production Batches</p></a></li>
+                  <li class="nav-item"><a href="../production/production_consumption.html" class="nav-link"><i class="fa-solid fa-truck-arrow-right me-2"></i><p>Consumption</p></a></li>
+                  <li class="nav-item"><a href="../production/finished_goods.html" class="nav-link"><i class="fa-solid fa-boxes-stacked me-2"></i><p>Finished Goods</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Sales Orders Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="../dashboard.html">Sales</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Sales Orders</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Manage sales orders, payment status, delivery dates, and order lifecycle.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#createOrderModal">
+                <i class="fa-solid fa-plus me-2"></i>Create Order
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <!-- KPI Cards -->
+          <div class="row g-3 mb-2">
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Orders</div>
+                      <div class="kpi-value" id="kpiTotalOrders">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-receipt" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Pending Orders</div>
+                      <div class="kpi-value" id="kpiPendingOrders">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-hourglass-half" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Completed Orders</div>
+                      <div class="kpi-value" id="kpiCompletedOrders">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-circle-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(13,110,253,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Sales Value</div>
+                      <div class="kpi-value" id="kpiTotalSalesValue">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-sack-dollar" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Today&apos;s Orders</div>
+                      <div class="kpi-value" id="kpiTodaysOrders">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-calendar-day" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-2">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(13,110,253,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Monthly Sales</div>
+                      <div class="kpi-value" id="kpiMonthlySales">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-chart-column" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters + Table -->
+          <div class="card erp-card mt-1">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-filter text-primary"></i>
+                <span>Sales Orders Filters</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-chart-pie me-1"></i>Demo dataset • KPI & Charts update
+              </div>
+            </div>
+
+            <div class="card-body">
+              <form id="filtersForm" autocomplete="off">
+                <div class="row g-3 align-items-end">
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <input type="date" class="form-control" id="filterStartDate" name="start_date" />
+                      <label for="filterStartDate"><i class="fa-regular fa-calendar me-2"></i>Start Date</label>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <input type="date" class="form-control" id="filterEndDate" name="end_date" />
+                      <label for="filterEndDate"><i class="fa-regular fa-calendar me-2"></i>End Date</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <select class="form-select" id="filterCustomer" name="customer">
+                        <option value="">All Customers</option>
+                      </select>
+                      <label for="filterCustomer"><i class="fa-solid fa-user me-2"></i>Customer</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-3">
+                    <div class="form-floating">
+                      <select class="form-select" id="filterOrderStatus" name="order_status">
+                        <option value="">All Statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="processing">Processing</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                      <label for="filterOrderStatus"><i class="fa-solid fa-circle-info me-2"></i>Order Status</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+                    <button class="btn" type="button" id="btnResetFilters" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-eraser me-2"></i>Reset
+                    </button>
+                    <button class="btn btn-erp" type="button" id="btnApplyFilters">
+                      <i class="fa-solid fa-magnifying-glass me-2"></i>Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-12">
+              <div class="card erp-card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-chart-line text-primary"></i>
+                    <span>Sales Orders Summary & Charts</span>
+                  </div>
+                  <div class="text-muted small fw-semibold">
+                    <i class="fa-solid fa-sparkles me-1"></i>Daily • Monthly • Customer • Status Mix
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-6">
+                      <div class="chart-card p-3">
+                        <div class="chart-title mb-2"><i class="fa-solid fa-chart-simple text-primary"></i>Daily Sales Orders</div>
+                        <div style="position:relative; height:260px;">
+                          <canvas id="chartDailySalesOrders"></canvas>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                      <div class="chart-card p-3">
+                        <div class="chart-title mb-2"><i class="fa-solid fa-diagram-project text-primary"></i>Monthly Sales Trend</div>
+                        <div style="position:relative; height:260px;">
+                          <canvas id="chartMonthlySalesTrend"></canvas>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                      <div class="chart-card p-3">
+                        <div class="chart-title mb-2"><i class="fa-solid fa-user-group text-primary"></i>Sales by Customer</div>
+                        <div style="position:relative; height:260px;">
+                          <canvas id="chartSalesByCustomer"></canvas>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                      <div class="chart-card p-3">
+                        <div class="chart-title mb-2"><i class="fa-solid fa-diagram-predecessor text-primary"></i>Order Status Distribution</div>
+                        <div style="position:relative; height:260px;">
+                          <canvas id="chartOrderStatusDistribution"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-top:1rem; margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>UI-only demo: charts and KPIs are computed from in-memory order records.
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DataTable -->
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-clipboard-list text-primary"></i>
+                <span>Sales Orders DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Excel/PDF/Print • Column Visibility
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="salesOrdersTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:150px;">Order No</th>
+                      <th style="width:150px;">Order Date</th>
+                      <th style="width:200px;">Customer</th>
+                      <th style="width:130px;">Product Count</th>
+                      <th style="width:150px;">Total Quantity</th>
+                      <th style="width:170px;">Total Amount</th>
+                      <th style="width:150px;">Delivery Date</th>
+                      <th style="width:160px;">Payment Status</th>
+                      <th style="width:150px;">Order Status</th>
+                      <th style="width:160px;">Created By</th>
+                      <th style="width:220px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Create Order Modal -->
+  <div class="modal fade" id="createOrderModal" tabindex="-1" aria-hidden="true" aria-labelledby="createOrderModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="createOrderModalLabel"><i class="fa-solid fa-plus me-2"></i>Create Order</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="createOrderForm" autocomplete="off">
+          <input type="hidden" id="createOrderIdHidden" />
+
+          <div class="modal-body">
+            <div class="row g-3">
+
+              <div class="col-12 col-lg-5">
+                <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                  <div class="p-4">
+
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="createOrderNo" placeholder="Order No" readonly />
+                          <label for="createOrderNo"><i class="fa-solid fa-hashtag me-2"></i>Order No (Auto)</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="date" class="form-control" id="createOrderDate" required />
+                          <label for="createOrderDate"><i class="fa-regular fa-calendar me-2"></i>Order Date</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="date" class="form-control" id="createDeliveryDate" required />
+                          <label for="createDeliveryDate"><i class="fa-regular fa-calendar me-2"></i>Delivery Date</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="createCustomer" required>
+                            <option value="">Select Customer</option>
+                          </select>
+                          <label for="createCustomer"><i class="fa-solid fa-user me-2"></i>Customer</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="createPaymentStatus" required>
+                            <option value="paid">Paid</option>
+                            <option value="partial">Partial</option>
+                            <option value="unpaid">Unpaid</option>
+                          </select>
+                          <label for="createPaymentStatus"><i class="fa-solid fa-wallet me-2"></i>Payment Status</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="createOrderStatus" required>
+                            <option value="draft">Draft</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          <label for="createOrderStatus"><i class="fa-solid fa-circle-info me-2"></i>Order Status</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="alert" style="background:rgba(13,110,253,.05); border:1px solid rgba(13,110,253,.18); color:var(--erp-info); margin-bottom:0;">
+                          <i class="fa-solid fa-receipt me-2"></i>UI-only demo: order lines are kept in-memory.
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-lg-7">
+                <div class="erp-card">
+                  <div class="p-4">
+                    <div class="fw-bold mb-2"><i class="fa-solid fa-boxes me-2 text-primary"></i>Order Details</div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="createOrderProduct" required>
+                            <option value="">Select Product</option>
+                          </select>
+                          <label for="createOrderProduct"><i class="fa-solid fa-cookie-bite me-2"></i>Product</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="createLineQty" placeholder="Quantity" min="1" step="1" required value="1" />
+                          <label for="createLineQty"><i class="fa-solid fa-list-ol me-2"></i>Quantity</label>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="createLineUnitPrice" placeholder="Unit Price" min="0" step="0.01" required value="0" />
+                          <label for="createLineUnitPrice"><i class="fa-solid fa-tags me-2"></i>Unit Price</label>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="createLineDiscount" placeholder="Discount" min="0" step="0.01" required value="0" />
+                          <label for="createLineDiscount"><i class="fa-solid fa-percentage me-2"></i>Discount</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="createLineTax" placeholder="Tax" min="0" step="0.01" required value="0" />
+                          <label for="createLineTax"><i class="fa-solid fa-chart-line me-2"></i>Tax</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-8 d-flex align-items-end">
+                        <button type="button" class="btn" id="btnAddLine" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                          <i class="fa-solid fa-plus me-2"></i>Add Line
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table table-sm table-striped table-hover align-middle">
+                        <thead>
+                          <tr>
+                            <th style="width:220px;">Product</th>
+                            <th style="width:120px;">Qty</th>
+                            <th style="width:160px;">Unit Price</th>
+                            <th style="width:140px;">Discount</th>
+                            <th style="width:120px;">Tax</th>
+                            <th style="width:180px;">Line Total</th>
+                            <th style="width:110px;"></th>
+                          </tr>
+                        </thead>
+                        <tbody id="createOrderLinesTbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-12 col-md-6">
+                        <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                          <div class="p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                              <div class="detail-label"><i class="fa-solid fa-user-tie me-2"></i>Created By</div>
+                              <div class="fw-bold" id="createCreatedBy">Admin</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                          <div class="p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                              <div class="detail-label"><i class="fa-solid fa-calculator me-2"></i>Total Amount</div>
+                              <div class="fw-bold" id="createTotalAmount">PKR 0.00</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Order</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Order Modal -->
+  <div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true" aria-labelledby="editOrderModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editOrderModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Order</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editOrderForm" autocomplete="off">
+          <input type="hidden" id="editOrderIdHidden" />
+
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-lg-5">
+                <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                  <div class="p-4">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <input type="text" class="form-control text-uppercase" id="editOrderNo" placeholder="Order No" readonly />
+                          <label for="editOrderNo"><i class="fa-solid fa-hashtag me-2"></i>Order No</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="date" class="form-control" id="editOrderDate" required />
+                          <label for="editOrderDate"><i class="fa-regular fa-calendar me-2"></i>Order Date</label>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <div class="form-floating">
+                          <input type="date" class="form-control" id="editDeliveryDate" required />
+                          <label for="editDeliveryDate"><i class="fa-regular fa-calendar me-2"></i>Delivery Date</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="editCustomer" required>
+                            <option value="">Select Customer</option>
+                          </select>
+                          <label for="editCustomer"><i class="fa-solid fa-user me-2"></i>Customer</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="editPaymentStatus" required>
+                            <option value="paid">Paid</option>
+                            <option value="partial">Partial</option>
+                            <option value="unpaid">Unpaid</option>
+                          </select>
+                          <label for="editPaymentStatus"><i class="fa-solid fa-wallet me-2"></i>Payment Status</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="editOrderStatus" required>
+                            <option value="draft">Draft</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          <label for="editOrderStatus"><i class="fa-solid fa-circle-info me-2"></i>Order Status</label>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-lg-7">
+                <div class="erp-card">
+                  <div class="p-4">
+                    <div class="fw-bold mb-2"><i class="fa-solid fa-boxes me-2 text-primary"></i>Order Details</div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-12">
+                        <div class="form-floating">
+                          <select class="form-select" id="editOrderProduct" required>
+                            <option value="">Select Product</option>
+                          </select>
+                          <label for="editOrderProduct"><i class="fa-solid fa-cookie-bite me-2"></i>Product</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="editLineQty" placeholder="Quantity" min="1" step="1" required value="1" />
+                          <label for="editLineQty"><i class="fa-solid fa-list-ol me-2"></i>Quantity</label>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="editLineUnitPrice" placeholder="Unit Price" min="0" step="0.01" required value="0" />
+                          <label for="editLineUnitPrice"><i class="fa-solid fa-tags me-2"></i>Unit Price</label>
+                        </div>
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="editLineDiscount" placeholder="Discount" min="0" step="0.01" required value="0" />
+                          <label for="editLineDiscount"><i class="fa-solid fa-percentage me-2"></i>Discount</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-4">
+                        <div class="form-floating">
+                          <input type="number" class="form-control" id="editLineTax" placeholder="Tax" min="0" step="0.01" required value="0" />
+                          <label for="editLineTax"><i class="fa-solid fa-chart-line me-2"></i>Tax</label>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-8 d-flex align-items-end">
+                        <button type="button" class="btn" id="btnAddLineToEdit" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                          <i class="fa-solid fa-plus me-2"></i>Add Line
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table table-sm table-striped table-hover align-middle">
+                        <thead>
+                          <tr>
+                            <th style="width:220px;">Product</th>
+                            <th style="width:120px;">Qty</th>
+                            <th style="width:160px;">Unit Price</th>
+                            <th style="width:140px;">Discount</th>
+                            <th style="width:120px;">Tax</th>
+                            <th style="width:180px;">Line Total</th>
+                            <th style="width:110px;"></th>
+                          </tr>
+                        </thead>
+                        <tbody id="editOrderLinesTbody"></tbody>
+                      </table>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-12 col-md-6">
+                        <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                          <div class="p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                              <div class="detail-label"><i class="fa-solid fa-user-tie me-2"></i>Created By</div>
+                              <div class="fw-bold" id="editCreatedBy">Admin</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-12 col-md-6">
+                        <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                          <div class="p-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                              <div class="detail-label"><i class="fa-solid fa-calculator me-2"></i>Total Amount</div>
+                              <div class="fw-bold" id="editTotalAmount">PKR 0.00</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Order</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- View Order Modal -->
+  <div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewOrderModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewOrderModalLabel"><i class="fa-solid fa-eye me-2"></i>View Order</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-receipt" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewOrderNo">—</div>
+                      <div class="text-muted small" id="viewCustomerName">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-money-bill me-2"></i>Payment Status</div>
+                      <div id="viewPaymentStatusContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Order Status</div>
+                      <div id="viewOrderStatusContainer"></div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-calendar me-2"></i>Order Date</div>
+                      <div class="fw-semibold" id="viewOrderDate">—</div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-truck-fast me-2"></i>Delivery Date</div>
+                      <div class="fw-semibold" id="viewDeliveryDate">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-list-ol me-2"></i>Product Count</div>
+                        <div class="fw-bold" id="viewProductCount">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-sort-numeric-up me-2"></i>Total Quantity</div>
+                        <div class="fw-bold" id="viewTotalQuantity">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-calculator me-2"></i>Total Amount</div>
+                        <div class="fw-bold" id="viewTotalAmount">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-user-tie me-2"></i>Created By</div>
+                        <div class="fw-bold" id="viewCreatedBy">—</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-boxes me-2 text-primary"></i>Order Details</div>
+
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover align-middle">
+                      <thead>
+                        <tr>
+                          <th style="width:250px;">Product</th>
+                          <th style="width:120px;">Quantity</th>
+                          <th style="width:150px;">Unit Price</th>
+                          <th style="width:140px;">Discount</th>
+                          <th style="width:120px;">Tax</th>
+                          <th style="width:170px;">Total Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody id="viewOrderLinesTbody"></tbody>
+                    </table>
+                  </div>
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: details are read-only.
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteOrderModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteOrderModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Confirmation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteOrderForm">
+          <input type="hidden" id="deleteOrderIdHidden" />
+
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteOrderTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteOrderMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    (function(){
+      const todayStr = new Date().toISOString().slice(0,10);
+      const currentYear = new Date().getFullYear();
+      const currentMonthKey = (() => {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,'0');
+        return `${y}-${m}`;
+      })();
+
+      const CUSTOMERS = [
+        { customer_id:'CUS-0001', customer_name:'Nawab Traders' },
+        { customer_id:'CUS-0002', customer_name:'Green Valley Distributors' },
+        { customer_id:'CUS-0003', customer_name:'City Mart Retail' },
+        { customer_id:'CUS-0004', customer_name:'Karachi Snacks Co.' },
+        { customer_id:'CUS-0005', customer_name:'Saffron Wholesalers' }
+      ];
+
+      const PRODUCTS = [
+        { product_id:'PRD-0006', product_name:'Chocolate Biscuit', unit:'PCS', unit_price:45.00 },
+        { product_id:'PRD-0007', product_name:'Milk Biscuit', unit:'PCS', unit_price:42.00 },
+        { product_id:'PRD-0008', product_name:'Coconut Biscuit', unit:'PCS', unit_price:48.00 }
+      ];
+
+      let salesOrders = [
+        {
+          sales_order_id:'SOID-0001',
+          order_no:`SO-${currentYear}-0001`,
+          order_date: todayStr,
+          delivery_date: todayStr,
+          customer_id:'CUS-0002',
+          customer_name:'Green Valley Distributors',
+          payment_status:'paid',
+          order_status:'processing',
+          created_by:'Admin',
+          created_at: todayStr,
+          lines:[
+            { product_id:'PRD-0006', product_name:'Chocolate Biscuit', qty:1200, unit_price:45.00, discount:0.00, tax:3.00 },
+            { product_id:'PRD-0007', product_name:'Milk Biscuit', qty:800, unit_price:42.00, discount:2.00, tax:3.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0002',
+          order_no:`SO-${currentYear}-0002`,
+          order_date: addDays(-1),
+          delivery_date: addDays(2),
+          customer_id:'CUS-0001',
+          customer_name:'Nawab Traders',
+          payment_status:'partial',
+          order_status:'confirmed',
+          created_by:'Ayesha',
+          created_at: addDays(-1),
+          lines:[
+            { product_id:'PRD-0008', product_name:'Coconut Biscuit', qty:600, unit_price:48.00, discount:5.00, tax:4.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0003',
+          order_no:`SO-${currentYear}-0003`,
+          order_date: addDays(-2),
+          delivery_date: addDays(5),
+          customer_id:'CUS-0003',
+          customer_name:'City Mart Retail',
+          payment_status:'unpaid',
+          order_status:'draft',
+          created_by:'Admin',
+          created_at: addDays(-2),
+          lines:[
+            { product_id:'PRD-0007', product_name:'Milk Biscuit', qty:400, unit_price:42.00, discount:0.00, tax:3.00 },
+            { product_id:'PRD-0006', product_name:'Chocolate Biscuit', qty:350, unit_price:45.00, discount:1.00, tax:3.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0004',
+          order_no:`SO-${currentYear}-0004`,
+          order_date: addDays(-3),
+          delivery_date: addDays(-1),
+          customer_id:'CUS-0004',
+          customer_name:'Karachi Snacks Co.',
+          payment_status:'paid',
+          order_status:'delivered',
+          created_by:'Rana',
+          created_at: addDays(-4),
+          lines:[
+            { product_id:'PRD-0006', product_name:'Chocolate Biscuit', qty:900, unit_price:45.00, discount:0.00, tax:3.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0005',
+          order_no:`SO-${currentYear}-0005`,
+          order_date: addDays(-8),
+          delivery_date: addDays(-5),
+          customer_id:'CUS-0005',
+          customer_name:'Saffron Wholesalers',
+          payment_status:'paid',
+          order_status:'delivered',
+          created_by:'Ayesha',
+          created_at: addDays(-8),
+          lines:[
+            { product_id:'PRD-0008', product_name:'Coconut Biscuit', qty:1000, unit_price:48.00, discount:2.00, tax:4.00 },
+            { product_id:'PRD-0007', product_name:'Milk Biscuit', qty:650, unit_price:42.00, discount:0.00, tax:3.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0006',
+          order_no:`SO-${currentYear}-0006`,
+          order_date: addDays(-12),
+          delivery_date: addDays(-2),
+          customer_id:'CUS-0002',
+          customer_name:'Green Valley Distributors',
+          payment_status:'partial',
+          order_status:'delivered',
+          created_by:'Admin',
+          created_at: addDays(-12),
+          lines:[
+            { product_id:'PRD-0006', product_name:'Chocolate Biscuit', qty:500, unit_price:45.00, discount:1.00, tax:3.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0007',
+          order_no:`SO-${currentYear}-0007`,
+          order_date: addDays(-16),
+          delivery_date: addDays(-10),
+          customer_id:'CUS-0001',
+          customer_name:'Nawab Traders',
+          payment_status:'unpaid',
+          order_status:'cancelled',
+          created_by:'Rana',
+          created_at: addDays(-16),
+          lines:[
+            { product_id:'PRD-0007', product_name:'Milk Biscuit', qty:250, unit_price:42.00, discount:0.00, tax:3.00 }
+          ]
+        },
+        {
+          sales_order_id:'SOID-0008',
+          order_no:`SO-${currentYear}-0008`,
+          order_date: addDays(-22),
+          delivery_date: addDays(-14),
+          customer_id:'CUS-0003',
+          customer_name:'City Mart Retail',
+          payment_status:'paid',
+          order_status:'processing',
+          created_by:'Admin',
+          created_at: addDays(-22),
+          lines:[
+            { product_id:'PRD-0008', product_name:'Coconut Biscuit', qty:780, unit_price:48.00, discount:3.00, tax:4.00 }
+          ]
+        }
+      ];
+
+      function addDays(offset){
+        const d = new Date();
+        d.setDate(d.getDate() + offset);
+        return d.toISOString().slice(0,10);
+      }
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'
+      })[c]);
+
+      const formatMoney = (value) => {
+        const n = Number(value) || 0;
+        return 'PKR ' + n.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      const paymentBadge = (status) => {
+        const s = String(status||'').toLowerCase();
+        if (s === 'paid') return '<span class="payment-badge pay-paid">Paid</span>';
+        if (s === 'partial') return '<span class="payment-badge pay-partial">Partial</span>';
+        return '<span class="payment-badge pay-unpaid">Unpaid</span>';
+      };
+
+      const orderStatusBadge = (status) => {
+        const s = String(status||'').toLowerCase();
+        if (s === 'draft') return '<span class="badge status-badge badge-draft">Draft</span>';
+        if (s === 'confirmed') return '<span class="badge status-badge badge-confirmed">Confirmed</span>';
+        if (s === 'processing') return '<span class="badge status-badge badge-processing">Processing</span>';
+        if (s === 'delivered') return '<span class="badge status-badge badge-delivered">Delivered</span>';
+        return '<span class="badge status-badge badge-cancelled">Cancelled</span>';
+      };
+
+      const orderTotals = (order) => {
+        const lines = order.lines || [];
+        let productCount = lines.length;
+        let totalQty = 0;
+        let totalAmount = 0;
+
+        for (const ln of lines){
+          const qty = Number(ln.qty||0);
+          const unit = Number(ln.unit_price||0);
+          const discount = Number(ln.discount||0);
+          const tax = Number(ln.tax||0);
+
+          // Discount treated as per-unit fixed discount (demo-friendly)
+          const netUnit = Math.max(0, unit - discount);
+          // Tax treated as per-unit fixed tax amount (demo-friendly)
+          const taxedUnit = netUnit + tax;
+          const lineTotal = qty * taxedUnit;
+
+          totalQty += qty;
+          totalAmount += lineTotal;
+        }
+
+        return { productCount, totalQty, totalAmount };
+      };
+
+      const getCustomerName = (id) => CUSTOMERS.find(c => c.customer_id === id)?.customer_name || '—';
+
+      // Derived rows for current filter
+      const applyFilters = () => {
+        const start = $('#filterStartDate').val();
+        const end = $('#filterEndDate').val();
+        const cust = $('#filterCustomer').val();
+        const status = $('#filterOrderStatus').val();
+
+        const sDate = start ? new Date(start) : null;
+        const eDate = end ? new Date(end) : null;
+
+        return salesOrders.filter(o => {
+          const od = new Date(o.order_date);
+          if (sDate && od < sDate) return false;
+          if (eDate && od > eDate) return false;
+          if (cust && String(o.customer_id) !== String(cust)) return false;
+          if (status && String(o.order_status) !== String(status)) return false;
+          return true;
+        });
+      };
+
+      let dt;
+      const $tableEl = $('#salesOrdersTable');
+      const $tbody = $tableEl.find('tbody');
+      let charts = { daily:null, monthly:null, customer:null, status:null };
+
+      const renderKPIs = () => {
+        const rows = applyFilters();
+        const totalsAll = rows.map(o => ({o, t: orderTotals(o)}));
+
+        const totalOrders = rows.length;
+
+        const pending = rows.filter(o => ['draft','confirmed','processing'].includes(o.order_status)).length;
+        const completed = rows.filter(o => String(o.order_status).toLowerCase() === 'delivered').length;
+
+        const totalSalesValue = totalsAll.reduce((sum,x)=> sum + x.t.totalAmount, 0);
+
+        const todays = rows.filter(o => o.order_date === todayStr).length;
+
+        const monthlySales = totalsAll
+          .filter(x => {
+            const d = new Date(x.o.order_date);
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            return key === currentMonthKey;
+          })
+          .reduce((sum,x)=> sum + x.t.totalAmount, 0);
+
+        $('#kpiTotalOrders').text(totalOrders);
+        $('#kpiPendingOrders').text(pending);
+        $('#kpiCompletedOrders').text(completed);
+        $('#kpiTotalSalesValue').text(formatMoney(totalSalesValue));
+        $('#kpiTodaysOrders').text(todays);
+        $('#kpiMonthlySales').text(formatMoney(monthlySales));
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        const rows = applyFilters();
+
+        for (const o of rows){
+          const t = orderTotals(o);
+          const tr = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(o.order_no)}</td>
+              <td>${escapeHtml(o.order_date)}</td>
+              <td>${escapeHtml(o.customer_name || getCustomerName(o.customer_id))}</td>
+              <td>${escapeHtml(t.productCount)}</td>
+              <td>${escapeHtml(t.totalQty.toLocaleString('en-PK'))}</td>
+              <td class="fw-semibold">${escapeHtml(formatMoney(t.totalAmount))}</td>
+              <td>${escapeHtml(o.delivery_date)}</td>
+              <td>${paymentBadge(o.payment_status)}</td>
+              <td>${orderStatusBadge(o.order_status)}</td>
+              <td>${escapeHtml(o.created_by || 'Admin')}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(o.sales_order_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(o.sales_order_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(o.sales_order_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(tr);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[1,'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0,1,2,3,4] },
+          { responsivePriority: 2, targets: [5,6,7,8] },
+          { responsivePriority: 3, targets: [9] },
+          { orderable: false, targets: -1 },
+        ],
+        buttons: [
+          { extend: 'colvis', className: 'btn-sm btn', text: '<i class="fa-solid fa-columns me-1"></i>Columns' },
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      const refreshTableAndCharts = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+        renderCharts();
+      };
+
+      const renderCharts = () => {
+        const rows = applyFilters();
+        const enriched = rows.map(o => ({
+          o,
+          totals: orderTotals(o),
+          order_date: o.order_date,
+          status: o.order_status,
+          customer_id: o.customer_id
+        }));
+
+        // Destroy old charts
+        if (charts.daily) charts.daily.destroy();
+        if (charts.monthly) charts.monthly.destroy();
+        if (charts.customer) charts.customer.destroy();
+        if (charts.status) charts.status.destroy();
+
+        // Daily Sales Orders (last 7 distinct dates)
+        const lastDates = Array.from(new Set(enriched.map(x => x.order_date))).sort().slice(-7);
+        const dailyOrders = lastDates.map(d => enriched.filter(x=>x.order_date===d).length);
+
+        // Monthly Sales Trend (last 6 months)
+        const monthKey = (dateStr) => {
+          const d = new Date(dateStr);
+          const y = d.getFullYear();
+          const m = String(d.getMonth()+1).padStart(2,'0');
+          return `${y}-${m}`;
+        };
+
+        const monthMap = new Map();
+        for (const x of enriched){
+          const k = monthKey(x.order_date);
+          monthMap.set(k, (monthMap.get(k) || 0) + x.totals.totalAmount);
+        }
+        const monthlyKeys = Array.from(monthMap.keys()).sort().slice(-6);
+        const monthlyAmount = monthlyKeys.map(k => monthMap.get(k) || 0);
+
+        // Sales by Customer (top 6 by amount)
+        const custMap = new Map();
+        for (const x of enriched){
+          custMap.set(x.customer_id, (custMap.get(x.customer_id) || 0) + x.totals.totalAmount);
+        }
+        const custSorted = Array.from(custMap.entries()).sort((a,b)=> b[1]-a[1]).slice(0,6);
+        const custLabels = custSorted.map(([id]) => getCustomerName(id));
+        const custData = custSorted.map(([,v]) => v);
+
+        // Status Distribution
+        const statusMap = new Map([
+          ['draft',0],['confirmed',0],['processing',0],['delivered',0],['cancelled',0]
+        ]);
+        for (const x of enriched){
+          const s = String(x.status||'').toLowerCase();
+          statusMap.set(s, (statusMap.get(s) || 0) + 1);
+        }
+        const statusLabels = ['Draft','Confirmed','Processing','Delivered','Cancelled'];
+        const statusData = [
+          statusMap.get('draft')||0,
+          statusMap.get('confirmed')||0,
+          statusMap.get('processing')||0,
+          statusMap.get('delivered')||0,
+          statusMap.get('cancelled')||0
+        ];
+
+        const common = {
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{ legend:{ display:true } },
+          scales:{
+            y:{ beginAtZero:true }
+          }
+        };
+
+        const ctxDaily = document.getElementById('chartDailySalesOrders');
+        if (ctxDaily) {
+          charts.daily = new Chart(ctxDaily.getContext('2d'),{
+            type:'bar',
+            data:{
+              labels: lastDates.length ? lastDates : ['—'],
+              datasets:[{
+                label:'Orders',
+                data: dailyOrders.length ? dailyOrders : [0],
+                backgroundColor:'rgba(11,42,74,.35)',
+                borderColor:'rgba(11,42,74,1)',
+                borderWidth:1
+              }]
+            },
+            options:{ ...common, scales:{ y:{ beginAtZero:true } } }
+          });
+        }
+
+        const ctxMonthly = document.getElementById('chartMonthlySalesTrend');
+        if (ctxMonthly) {
+          charts.monthly = new Chart(ctxMonthly.getContext('2d'),{
+            type:'line',
+            data:{
+              labels: monthlyKeys.length ? monthlyKeys : ['—'],
+              datasets:[{
+                label:'Monthly Sales Value',
+                data: monthlyAmount.length ? monthlyAmount : [0],
+                borderColor:'rgba(13,110,253,1)',
+                backgroundColor:'rgba(13,110,253,.12)',
+                tension:0.35,
+                fill:true
+              }]
+            },
+            options:{ ...common, scales:{ y:{ beginAtZero:true } } }
+          });
+        }
+
+        const ctxCustomer = document.getElementById('chartSalesByCustomer');
+        if (ctxCustomer) {
+          const bg = [
+            'rgba(11,42,74,.35)','rgba(13,110,253,.30)','rgba(25,135,84,.30)','rgba(253,126,20,.30)','rgba(220,53,69,.30)','rgba(108,117,125,.30)'
+          ];
+          charts.customer = new Chart(ctxCustomer.getContext('2d'),{
+            type:'doughnut',
+            data:{
+              labels: custLabels.length ? custLabels : ['—'],
+              datasets:[{
+                data: custData.length ? custData : [0],
+                backgroundColor: bg,
+                borderWidth:0
+              }]
+            },
+            options:{
+              responsive:true,
+              maintainAspectRatio:false,
+              plugins:{ legend:{ position:'bottom' } }
+            }
+          });
+        }
+
+        const ctxStatus = document.getElementById('chartOrderStatusDistribution');
+        if (ctxStatus) {
+          const colors = [
+            'rgba(108,117,125,.60)','rgba(13,110,253,.55)','rgba(253,126,20,.55)','rgba(25,135,84,.55)','rgba(220,53,69,.55)'
+          ];
+          charts.status = new Chart(ctxStatus.getContext('2d'),{
+            type:'bar',
+            data:{
+              labels: statusLabels,
+              datasets:[{
+                label:'Orders',
+                data: statusData.length ? statusData : [0],
+                backgroundColor: colors,
+                borderWidth:1
+              }]
+            },
+            options:{ ...common, scales:{ y:{ beginAtZero:true } } }
+          });
+        }
+      };
+
+      const getOrderById = (id) => salesOrders.find(o => o.sales_order_id === id);
+
+      // Populate selects
+      const populateSelects = () => {
+        const custOpts = CUSTOMERS.map(c => `<option value="${escapeHtml(c.customer_id)}">${escapeHtml(c.customer_name)}</option>`).join('');
+        $('#filterCustomer').append(custOpts);
+        $('#createCustomer').append(custOpts);
+        $('#editCustomer').append(custOpts);
+
+        const prodOpts = PRODUCTS.map(p => `<option value="${escapeHtml(p.product_id)}">${escapeHtml(p.product_name)} (${escapeHtml(p.unit)})</option>`).join('');
+        $('#createOrderProduct').append(prodOpts);
+        $('#editOrderProduct').append(prodOpts);
+      };
+
+      // Create/Edit line builders
+      let createLines = [];
+      let editLines = [];
+
+      const computeLineTotal = (ln) => {
+        const qty = Number(ln.qty||0);
+        const unit = Number(ln.unit_price||0);
+        const discount = Number(ln.discount||0);
+        const tax = Number(ln.tax||0);
+        const netUnit = Math.max(0, unit - discount);
+        const taxedUnit = netUnit + tax;
+        return qty * taxedUnit;
+      };
+
+      const recomputeCreateTotal = () => {
+        const totalAmount = createLines.reduce((sum,ln)=> sum + computeLineTotal(ln),0);
+        $('#createTotalAmount').text(formatMoney(totalAmount));
+      };
+
+      const recomputeEditTotal = () => {
+        const totalAmount = editLines.reduce((sum,ln)=> sum + computeLineTotal(ln),0);
+        $('#editTotalAmount').text(formatMoney(totalAmount));
+      };
+
+      const renderCreateLines = () => {
+        const $tbodyLines = $('#createOrderLinesTbody');
+        $tbodyLines.empty();
+        for (const ln of createLines){
+          const row = `
+            <tr>
+              <td>${escapeHtml(ln.product_name)}</td>
+              <td>${escapeHtml(Number(ln.qty).toLocaleString('en-PK'))}</td>
+              <td>${escapeHtml(formatMoney(ln.unit_price))}</td>
+              <td>${escapeHtml(formatMoney(ln.discount))}</td>
+              <td>${escapeHtml(formatMoney(ln.tax))}</td>
+              <td class="fw-semibold">${escapeHtml(formatMoney(computeLineTotal(ln)))}</td>
+              <td>
+                <button type="button" class="btn btn-sm" data-action="removeLine" data-index="${escapeHtml(ln._idx)}" style="background:rgba(220,53,69,.08); color:var(--erp-danger); border-color:rgba(220,53,69,.18);">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+          $tbodyLines.append(row);
+        }
+        recomputeCreateTotal();
+      };
+
+      const renderEditLines = () => {
+        const $tbodyLines = $('#editOrderLinesTbody');
+        $tbodyLines.empty();
+        for (const ln of editLines){
+          const row = `
+            <tr>
+              <td>${escapeHtml(ln.product_name)}</td>
+              <td>${escapeHtml(Number(ln.qty).toLocaleString('en-PK'))}</td>
+              <td>${escapeHtml(formatMoney(ln.unit_price))}</td>
+              <td>${escapeHtml(formatMoney(ln.discount))}</td>
+              <td>${escapeHtml(formatMoney(ln.tax))}</td>
+              <td class="fw-semibold">${escapeHtml(formatMoney(computeLineTotal(ln)))}</td>
+              <td>
+                <button type="button" class="btn btn-sm" data-action="removeLine" data-index="${escapeHtml(ln._idx)}" style="background:rgba(220,53,69,.08); color:var(--erp-danger); border-color:rgba(220,53,69,.18);">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+          $tbodyLines.append(row);
+        }
+        recomputeEditTotal();
+      };
+
+      const syncProductToUnitPrice = (prefix) => {
+        const productId = document.getElementById(`${prefix}OrderProduct`)?.value;
+        const prod = PRODUCTS.find(p => p.product_id === productId);
+        if (!prod) return;
+        document.getElementById(`${prefix}LineUnitPrice`).value = prod.unit_price;
+      };
+
+      const addCreateLine = () => {
+        const productId = $('#createOrderProduct').val();
+        const qty = Number($('#createLineQty').val());
+        const unit_price = Number($('#createLineUnitPrice').val());
+        const discount = Number($('#createLineDiscount').val());
+        const tax = Number($('#createLineTax').val());
+
+        if (!productId) return;
+        if (!Number.isFinite(qty) || qty <= 0) return;
+        if (!Number.isFinite(unit_price) || unit_price < 0) return;
+        if (!Number.isFinite(discount) || discount < 0) return;
+        if (!Number.isFinite(tax) || tax < 0) return;
+
+        const prod = PRODUCTS.find(p => p.product_id === productId);
+        createLines.push({
+          _idx: Date.now() + Math.random(),
+          product_id: prod.product_id,
+          product_name: prod.product_name,
+          qty,
+          unit_price,
+          discount,
+          tax
+        });
+
+        renderCreateLines();
+      };
+
+      const addEditLine = () => {
+        const productId = $('#editOrderProduct').val();
+        const qty = Number($('#editLineQty').val());
+        const unit_price = Number($('#editLineUnitPrice').val());
+        const discount = Number($('#editLineDiscount').val());
+        const tax = Number($('#editLineTax').val());
+
+        if (!productId) return;
+        if (!Number.isFinite(qty) || qty <= 0) return;
+        if (!Number.isFinite(unit_price) || unit_price < 0) return;
+        if (!Number.isFinite(discount) || discount < 0) return;
+        if (!Number.isFinite(tax) || tax < 0) return;
+
+        const prod = PRODUCTS.find(p => p.product_id === productId);
+        editLines.push({
+          _idx: Date.now() + Math.random(),
+          product_id: prod.product_id,
+          product_name: prod.product_name,
+          qty,
+          unit_price,
+          discount,
+          tax
+        });
+
+        renderEditLines();
+      };
+
+      const generateOrderNo = () => {
+        const nums = salesOrders
+          .map(x => parseInt(String(x.order_no||'').replace(/[^0-9]/g,''),10))
+          .filter(n => Number.isFinite(n));
+        const next = nums.length ? Math.max(...nums) + 1 : 1;
+        return `SO-${currentYear}-${String(next).padStart(4,'0')}`;
+      };
+
+      const resetCreateModal = () => {
+        $('#createOrderNo').val(generateOrderNo());
+        $('#createOrderDate').val(todayStr);
+        $('#createDeliveryDate').val(todayStr);
+        $('#createPaymentStatus').val('paid');
+        $('#createOrderStatus').val('draft');
+        createLines = [];
+        renderCreateLines();
+        $('#createCreatedBy').text('Admin');
+      };
+
+      const resetEditModal = () => {
+        editLines = [];
+        renderEditLines();
+      };
+
+      const fillEditModal = (o) => {
+        $('#editOrderIdHidden').val(o.sales_order_id);
+        $('#editOrderNo').val(o.order_no);
+        $('#editOrderDate').val(o.order_date);
+        $('#editDeliveryDate').val(o.delivery_date);
+        $('#editCustomer').val(o.customer_id);
+        $('#editPaymentStatus').val(o.payment_status);
+        $('#editOrderStatus').val(o.order_status);
+        $('#editCreatedBy').text(o.created_by || 'Admin');
+
+        editLines = (o.lines||[]).map(ln => ({
+          _idx: Date.now() + Math.random(),
+          product_id: ln.product_id,
+          product_name: ln.product_name,
+          qty: Number(ln.qty||0),
+          unit_price: Number(ln.unit_price||0),
+          discount: Number(ln.discount||0),
+          tax: Number(ln.tax||0)
+        }));
+        renderEditLines();
+      };
+
+      const fillViewModal = (o) => {
+        const t = orderTotals(o);
+        $('#viewOrderNo').text(o.order_no);
+        $('#viewCustomerName').text(o.customer_name || getCustomerName(o.customer_id));
+        $('#viewPaymentStatusContainer').html(paymentBadge(o.payment_status));
+        $('#viewOrderStatusContainer').html(orderStatusBadge(o.order_status));
+        $('#viewOrderDate').text(o.order_date);
+        $('#viewDeliveryDate').text(o.delivery_date);
+        $('#viewProductCount').text(t.productCount);
+        $('#viewTotalQuantity').text(t.totalQty.toLocaleString('en-PK'));
+        $('#viewTotalAmount').text(formatMoney(t.totalAmount));
+        $('#viewCreatedBy').text(o.created_by || 'Admin');
+
+        const $tbodyLines = $('#viewOrderLinesTbody');
+        $tbodyLines.empty();
+        for (const ln of o.lines || []){
+          const lineTotal = computeLineTotal(ln);
+          $tbodyLines.append(`
+            <tr>
+              <td>${escapeHtml(ln.product_name)}</td>
+              <td>${escapeHtml(Number(ln.qty||0).toLocaleString('en-PK'))}</td>
+              <td>${escapeHtml(formatMoney(ln.unit_price))}</td>
+              <td>${escapeHtml(formatMoney(ln.discount))}</td>
+              <td>${escapeHtml(formatMoney(ln.tax))}</td>
+              <td class="fw-semibold">${escapeHtml(formatMoney(lineTotal))}</td>
+            </tr>
+          `);
+        }
+      };
+
+      // Bind events
+      const bindEvents = () => {
+        $('#logoutBtn').on('click', (ev) => { ev.preventDefault(); window.location.href = '../auth/login.html'; });
+
+        $('#btnRefresh').on('click', () => {
+          refreshTableAndCharts();
+        });
+
+        $('#btnApplyFilters').on('click', () => refreshTableAndCharts());
+        $('#btnResetFilters').on('click', () => {
+          $('#filterStartDate').val('');
+          $('#filterEndDate').val('');
+          $('#filterCustomer').val('');
+          $('#filterOrderStatus').val('');
+          refreshTableAndCharts();
+        });
+
+        // Create modal
+        document.getElementById('createOrderModal').addEventListener('show.bs.modal', () => {
+          resetCreateModal();
+        });
+
+        document.getElementById('createOrderProduct').addEventListener('change', () => syncProductToUnitPrice('create'));
+
+        $('#btnAddLine').on('click', () => addCreateLine());
+
+        $('#createOrderLinesTbody').on('click', 'button[data-action="removeLine"]', function(){
+          const idx = $(this).data('index');
+          createLines = createLines.filter(x => x._idx !== idx);
+          renderCreateLines();
+        });
+
+        $('#createOrderForm').on('submit', (ev) => {
+          ev.preventDefault();
+
+          const order_no = $('#createOrderNo').val();
+          const order_date = $('#createOrderDate').val();
+          const delivery_date = $('#createDeliveryDate').val();
+          const customer_id = $('#createCustomer').val();
+          const payment_status = $('#createPaymentStatus').val();
+          const order_status = $('#createOrderStatus').val();
+
+          if (!order_no || !order_date || !delivery_date || !customer_id) return;
+          if (!createLines.length) return;
+
+          const total = createLines.reduce((sum,ln)=> sum + computeLineTotal(ln),0);
+          const newOrder = {
+            sales_order_id: `SOID-${Date.now()}`,
+            order_no,
+            order_date,
+            delivery_date,
+            customer_id,
+            customer_name: getCustomerName(customer_id),
+            payment_status,
+            order_status,
+            created_by: 'Admin',
+            created_at: todayStr,
+            lines: createLines.map(ln => ({...ln}))
+          };
+
+          salesOrders.unshift(newOrder);
+          bootstrap.Modal.getInstance(document.getElementById('createOrderModal'))?.hide();
+          refreshTableAndCharts();
+        });
+
+        // Edit modal
+        document.getElementById('editOrderModal').addEventListener('show.bs.modal', () => {
+          resetEditModal();
+        });
+        document.getElementById('editOrderProduct').addEventListener('change', () => syncProductToUnitPrice('edit'));
+
+        $('#btnAddLineToEdit').on('click', () => addEditLine());
+
+        $('#editOrderLinesTbody').on('click', 'button[data-action="removeLine"]', function(){
+          const idx = $(this).data('index');
+          editLines = editLines.filter(x => x._idx !== idx);
+          renderEditLines();
+        });
+
+        $('#editOrderForm').on('submit', (ev) => {
+          ev.preventDefault();
+          const id = $('#editOrderIdHidden').val();
+          const o = getOrderById(id);
+          if (!o) return;
+
+          const order_date = $('#editOrderDate').val();
+          const delivery_date = $('#editDeliveryDate').val();
+          const customer_id = $('#editCustomer').val();
+          const payment_status = $('#editPaymentStatus').val();
+          const order_status = $('#editOrderStatus').val();
+
+          if (!order_date || !delivery_date || !customer_id) return;
+          if (!editLines.length) return;
+
+          o.order_date = order_date;
+          o.delivery_date = delivery_date;
+          o.customer_id = customer_id;
+          o.customer_name = getCustomerName(customer_id);
+          o.payment_status = payment_status;
+          o.order_status = order_status;
+          o.lines = editLines.map(ln => ({
+            product_id: ln.product_id,
+            product_name: ln.product_name,
+            qty: Number(ln.qty||0),
+            unit_price: Number(ln.unit_price||0),
+            discount: Number(ln.discount||0),
+            tax: Number(ln.tax||0)
+          }));
+
+          bootstrap.Modal.getInstance(document.getElementById('editOrderModal'))?.hide();
+          refreshTableAndCharts();
+        });
+
+        // Table actions
+        $tableEl.on('click', 'a[data-action]', function(ev){
+          ev.preventDefault();
+          const action = ev.currentTarget.getAttribute('data-action');
+          const id = ev.currentTarget.getAttribute('data-id');
+          const o = getOrderById(id);
+          if (!o) return;
+
+          if (action === 'view'){
+            fillViewModal(o);
+            new bootstrap.Modal(document.getElementById('viewOrderModal')).show();
+          }
+
+          if (action === 'edit'){
+            fillEditModal(o);
+            new bootstrap.Modal(document.getElementById('editOrderModal')).show();
+          }
+
+          if (action === 'delete'){
+            $('#deleteOrderIdHidden').val(o.sales_order_id);
+            $('#deleteOrderTitle').textContent = `Delete ${o.order_no}?`;
+            $('#deleteOrderMessage').textContent = `${o.customer_name || getCustomerName(o.customer_id)}. This action cannot be undone.`;
+            new bootstrap.Modal(document.getElementById('deleteOrderModal')).show();
+          }
+        });
+
+        $('#deleteOrderForm').on('submit', (ev) => {
+          ev.preventDefault();
+          const id = $('#deleteOrderIdHidden').val();
+          salesOrders = salesOrders.filter(x => x.sales_order_id !== id);
+          bootstrap.Modal.getInstance(document.getElementById('deleteOrderModal'))?.hide();
+          refreshTableAndCharts();
+        });
+      };
+
+      // Init
+      populateSelects();
+
+      // Default filter dates: last 15 days for nicer demo KPIs
+      (function initDefaultFilters(){
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 15);
+        $('#filterEndDate').val(end.toISOString().slice(0,10));
+        $('#filterStartDate').val(start.toISOString().slice(0,10));
+      })();
+
+      refreshTableAndCharts();
+      bindEvents();
+
+      // Ensure product unit_price is synced on load
+      syncProductToUnitPrice('create');
+      syncProductToUnitPrice('edit');
+    })();
+  </script>
+
+</body>
+</html>
+

@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Products Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .status-badge, .type-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-active{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-inactive{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+    .badge-pending{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-raw{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-finished{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-packaging{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+
+    .stock-low{ color:var(--erp-danger); font-weight:850; }
+    .stock-ok{ color:var(--erp-success); font-weight:750; }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge,
+    [data-bs-theme="dark"] .type-badge{ color:rgba(255,255,255,.92); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-box text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Products Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Manufacturing • Inventory • Pricing</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="products.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-boxes-stacked"></i><p>Inventory</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="categories.html" class="nav-link"><i class="fa-solid fa-tags me-2"></i><p>Categories</p></a></li>
+                  <li class="nav-item"><a href="units.html" class="nav-link"><i class="fa-solid fa-ruler-combined me-2"></i><p>Units</p></a></li>
+                  <li class="nav-item"><a href="products.html" class="nav-link active"><i class="fa-solid fa-box me-2"></i><p>Products</p></a></li>
+                  <li class="nav-item"><a href="#stock" class="nav-link"><i class="fa-solid fa-warehouse me-2"></i><p>Stock</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Products Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="categories.html">Inventory</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Products</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Manage raw materials, finished goods, packaging items, pricing, and stock thresholds.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+              <button class="btn btn-erp" type="button" id="btnAddProduct" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Product
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="container-fluid">
+
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Products</div>
+                      <div class="kpi-value" id="kpiTotalProducts">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-box" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Raw Materials</div>
+                      <div class="kpi-value" id="kpiRawMaterials">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-wheat-awn" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Finished Products</div>
+                      <div class="kpi-value" id="kpiFinishedProducts">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-cookie-bite" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(13,110,253,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Packaging Materials</div>
+                      <div class="kpi-value" id="kpiPackagingMaterials">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-box-open" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-box text-primary"></i>
+                <span>Products DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Responsive • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="productsTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:130px;">Product Code</th>
+                      <th>Product Name</th>
+                      <th style="width:150px;">Product Type</th>
+                      <th style="width:160px;">Category</th>
+                      <th style="width:80px;">Unit</th>
+                      <th style="width:130px;">Purchase Price</th>
+                      <th style="width:130px;">Selling Price</th>
+                      <th style="width:120px;">Reorder Level</th>
+                      <th style="width:120px;">Current Stock</th>
+                      <th style="width:110px;">Status</th>
+                      <th style="width:120px;">Created Date</th>
+                      <th style="width:210px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true" aria-labelledby="addProductModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addProductModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addProductForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="text" class="form-control text-uppercase" id="addProductCode" name="product_code" placeholder="Product Code" required />
+                  <label for="addProductCode"><i class="fa-solid fa-barcode me-2"></i>Product Code</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addProductName" name="product_name" placeholder="Product Name" required />
+                  <label for="addProductName"><i class="fa-solid fa-box me-2"></i>Product Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="addProductType" name="product_type" required>
+                    <option value="raw_material">Raw Material</option>
+                    <option value="finished_product">Finished Product</option>
+                    <option value="packaging_material">Packaging Material</option>
+                  </select>
+                  <label for="addProductType"><i class="fa-solid fa-layer-group me-2"></i>Product Type</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="addCategoryId" name="category_id" required></select>
+                  <label for="addCategoryId"><i class="fa-solid fa-tags me-2"></i>Category</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="addUnitId" name="unit_id" required></select>
+                  <label for="addUnitId"><i class="fa-solid fa-ruler-combined me-2"></i>Unit</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="addProductStatus" name="status" required>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <label for="addProductStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addPurchasePrice" name="purchase_price" min="0" step="0.01" required />
+                  <label for="addPurchasePrice"><i class="fa-solid fa-cart-shopping me-2"></i>Purchase Price</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addSellingPrice" name="selling_price" min="0" step="0.01" required />
+                  <label for="addSellingPrice"><i class="fa-solid fa-tags me-2"></i>Selling Price</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addReorderLevel" name="reorder_level" min="0" step="1" required />
+                  <label for="addReorderLevel"><i class="fa-solid fa-bell me-2"></i>Reorder Level</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addCurrentStock" name="current_stock" min="0" step="1" value="0" />
+                  <label for="addCurrentStock"><i class="fa-solid fa-warehouse me-2"></i>Current Stock</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>Demo dataset uses database-friendly fields for future PHP/MySQL integration.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Product Modal -->
+  <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true" aria-labelledby="editProductModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editProductModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editProductForm" autocomplete="off">
+          <input type="hidden" id="editProductIdHidden" name="product_id" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="text" class="form-control text-uppercase" id="editProductCode" name="product_code" required />
+                  <label for="editProductCode"><i class="fa-solid fa-barcode me-2"></i>Product Code</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editProductName" name="product_name" required />
+                  <label for="editProductName"><i class="fa-solid fa-box me-2"></i>Product Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="editProductType" name="product_type" required>
+                    <option value="raw_material">Raw Material</option>
+                    <option value="finished_product">Finished Product</option>
+                    <option value="packaging_material">Packaging Material</option>
+                  </select>
+                  <label for="editProductType"><i class="fa-solid fa-layer-group me-2"></i>Product Type</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="editCategoryId" name="category_id" required></select>
+                  <label for="editCategoryId"><i class="fa-solid fa-tags me-2"></i>Category</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="editUnitId" name="unit_id" required></select>
+                  <label for="editUnitId"><i class="fa-solid fa-ruler-combined me-2"></i>Unit</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <select class="form-select" id="editProductStatus" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <label for="editProductStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editPurchasePrice" name="purchase_price" min="0" step="0.01" required />
+                  <label for="editPurchasePrice"><i class="fa-solid fa-cart-shopping me-2"></i>Purchase Price</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editSellingPrice" name="selling_price" min="0" step="0.01" required />
+                  <label for="editSellingPrice"><i class="fa-solid fa-tags me-2"></i>Selling Price</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editReorderLevel" name="reorder_level" min="0" step="1" required />
+                  <label for="editReorderLevel"><i class="fa-solid fa-bell me-2"></i>Reorder Level</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editCurrentStock" name="current_stock" min="0" step="1" required />
+                  <label for="editCurrentStock"><i class="fa-solid fa-warehouse me-2"></i>Current Stock</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Product Modal -->
+  <div class="modal fade" id="viewProductModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewProductModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewProductModalLabel"><i class="fa-solid fa-eye me-2"></i>View Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-4">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="fw-bold fs-5" id="viewProductName">—</div>
+                  <div class="text-muted small" id="viewProductId">—</div>
+                  <div class="text-muted small mt-1" id="viewProductCode">—</div>
+                  <div class="mt-3 d-flex flex-wrap gap-2">
+                    <span id="viewProductTypeContainer"></span>
+                    <span id="viewProductStatusContainer"></span>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-tags me-2"></i>Category</div>
+                      <div class="fw-semibold" id="viewCategoryName">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-ruler-combined me-2"></i>Unit</div>
+                      <div class="fw-semibold" id="viewUnitLabel">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-regular fa-calendar me-2"></i>Created Date</div>
+                      <div class="fw-semibold" id="viewCreatedAt">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Pricing & Stock</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-cart-shopping me-2"></i>Purchase Price</div>
+                      <div class="fw-semibold" id="viewPurchasePrice">—</div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-tags me-2"></i>Selling Price</div>
+                      <div class="fw-semibold" id="viewSellingPrice">—</div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-bell me-2"></i>Reorder Level</div>
+                      <div class="fw-semibold" id="viewReorderLevel">—</div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-warehouse me-2"></i>Current Stock</div>
+                      <div class="fw-semibold" id="viewCurrentStock">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: product details are read-only.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Product Modal -->
+  <div class="modal fade" id="deleteProductModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteProductModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteProductModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteProductForm">
+          <input type="hidden" id="deleteProductIdHidden" name="product_id" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteProductTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteProductMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      const categories = [
+        { category_id:'CAT-0001', category_name:'Raw Materials' },
+        { category_id:'CAT-0002', category_name:'Finished Goods' },
+        { category_id:'CAT-0003', category_name:'Packaging' }
+      ];
+
+      const units = [
+        { unit_id:'UNT-0001', unit_code:'KG', unit_name:'Kilogram' },
+        { unit_id:'UNT-0002', unit_code:'G', unit_name:'Gram' },
+        { unit_id:'UNT-0003', unit_code:'L', unit_name:'Liter' },
+        { unit_id:'UNT-0005', unit_code:'PCS', unit_name:'Piece' },
+        { unit_id:'UNT-0007', unit_code:'BOX', unit_name:'Box' },
+        { unit_id:'UNT-0008', unit_code:'CTN', unit_name:'Carton' },
+        { unit_id:'UNT-0009', unit_code:'BAG', unit_name:'Bag' },
+        { unit_id:'UNT-0010', unit_code:'ROLL', unit_name:'Roll' }
+      ];
+
+      let products = [
+        { product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', product_type:'raw_material', category_id:'CAT-0001', unit_id:'UNT-0001', purchase_price:92.50, selling_price:0, reorder_level:800, current_stock:1450, status:'active', created_at:'2025-10-12' },
+        { product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar', product_type:'raw_material', category_id:'CAT-0001', unit_id:'UNT-0001', purchase_price:118.00, selling_price:0, reorder_level:600, current_stock:520, status:'active', created_at:'2025-10-12' },
+        { product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil', product_type:'raw_material', category_id:'CAT-0001', unit_id:'UNT-0003', purchase_price:285.00, selling_price:0, reorder_level:300, current_stock:410, status:'active', created_at:'2025-10-18' },
+        { product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder', product_type:'raw_material', category_id:'CAT-0001', unit_id:'UNT-0001', purchase_price:640.00, selling_price:0, reorder_level:200, current_stock:180, status:'active', created_at:'2025-11-02' },
+        { product_id:'PRD-0005', product_code:'RM-CCO-001', product_name:'Cocoa Powder', product_type:'raw_material', category_id:'CAT-0001', unit_id:'UNT-0001', purchase_price:980.00, selling_price:0, reorder_level:150, current_stock:95, status:'pending', created_at:'2025-11-20' },
+        { product_id:'PRD-0006', product_code:'FG-CHB-001', product_name:'Chocolate Biscuit', product_type:'finished_product', category_id:'CAT-0002', unit_id:'UNT-0005', purchase_price:0, selling_price:45.00, reorder_level:500, current_stock:1280, status:'active', created_at:'2025-12-05' },
+        { product_id:'PRD-0007', product_code:'FG-MKB-001', product_name:'Milk Biscuit', product_type:'finished_product', category_id:'CAT-0002', unit_id:'UNT-0005', purchase_price:0, selling_price:42.00, reorder_level:500, current_stock:960, status:'active', created_at:'2025-12-05' },
+        { product_id:'PRD-0008', product_code:'FG-CNB-001', product_name:'Coconut Biscuit', product_type:'finished_product', category_id:'CAT-0002', unit_id:'UNT-0005', purchase_price:0, selling_price:48.00, reorder_level:400, current_stock:720, status:'active', created_at:'2026-01-15' },
+        { product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper', product_type:'packaging_material', category_id:'CAT-0003', unit_id:'UNT-0010', purchase_price:850.00, selling_price:0, reorder_level:40, current_stock:22, status:'active', created_at:'2026-02-01' },
+        { product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box', product_type:'packaging_material', category_id:'CAT-0003', unit_id:'UNT-0008', purchase_price:65.00, selling_price:0, reorder_level:200, current_stock:340, status:'active', created_at:'2026-02-01' },
+        { product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels', product_type:'packaging_material', category_id:'CAT-0003', unit_id:'UNT-0005', purchase_price:2.50, selling_price:0, reorder_level:1000, current_stock:1850, status:'inactive', created_at:'2026-02-10' }
+      ];
+
+      const $tableEl = $('#productsTable');
+      const $tbody = $tableEl.find('tbody');
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+
+      const getCategoryName = (categoryId) => categories.find(c => c.category_id === categoryId)?.category_name || '—';
+      const getUnit = (unitId) => units.find(u => u.unit_id === unitId);
+      const getUnitLabel = (unitId) => {
+        const u = getUnit(unitId);
+        return u ? `${u.unit_code}` : '—';
+      };
+
+      const formatMoney = (value) => {
+        const n = Number(value) || 0;
+        return 'PKR ' + n.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      const statusBadge = (status) => {
+        const s = String(status || '').toLowerCase();
+        if (s === 'active') return '<span class="badge status-badge badge-active">Active</span>';
+        if (s === 'inactive') return '<span class="badge status-badge badge-inactive">Inactive</span>';
+        return '<span class="badge status-badge badge-pending">Pending</span>';
+      };
+
+      const typeBadge = (productType) => {
+        const map = {
+          raw_material: '<span class="badge type-badge badge-raw">Raw Material</span>',
+          finished_product: '<span class="badge type-badge badge-finished">Finished Product</span>',
+          packaging_material: '<span class="badge type-badge badge-packaging">Packaging Material</span>'
+        };
+        return map[String(productType || '').toLowerCase()] || map.raw_material;
+      };
+
+      const stockCell = (stock, reorder) => {
+        const s = Number(stock) || 0;
+        const r = Number(reorder) || 0;
+        const cls = s <= r ? 'stock-low' : 'stock-ok';
+        return `<span class="${cls}">${escapeHtml(s)}</span>`;
+      };
+
+      const codeExists = (code, excludeId) => {
+        const normalized = String(code || '').trim().toUpperCase();
+        return products.some(p =>
+          p.product_id !== excludeId &&
+          String(p.product_code || '').trim().toUpperCase() === normalized
+        );
+      };
+
+      const enrichProduct = (product) => {
+        product.category_name = getCategoryName(product.category_id);
+        product.unit_code = getUnit(product.unit_id)?.unit_code || '';
+        return product;
+      };
+
+      products = products.map(enrichProduct);
+
+      const renderKPIs = () => {
+        $('#kpiTotalProducts').text(products.length);
+        $('#kpiRawMaterials').text(products.filter(p => p.product_type === 'raw_material').length);
+        $('#kpiFinishedProducts').text(products.filter(p => p.product_type === 'finished_product').length);
+        $('#kpiPackagingMaterials').text(products.filter(p => p.product_type === 'packaging_material').length);
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const p of products){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(p.product_code)}</td>
+              <td>${escapeHtml(p.product_name)}</td>
+              <td>${typeBadge(p.product_type)}</td>
+              <td>${escapeHtml(p.category_name)}</td>
+              <td>${escapeHtml(p.unit_code)}</td>
+              <td>${escapeHtml(formatMoney(p.purchase_price))}</td>
+              <td>${escapeHtml(formatMoney(p.selling_price))}</td>
+              <td>${escapeHtml(p.reorder_level)}</td>
+              <td>${stockCell(p.current_stock, p.reorder_level)}</td>
+              <td>${statusBadge(p.status)}</td>
+              <td>${escapeHtml(p.created_at)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(p.product_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(p.product_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(p.product_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const populateSelects = () => {
+        ['addCategoryId', 'editCategoryId'].forEach(id => {
+          const el = document.getElementById(id);
+          el.innerHTML = categories.map(c =>
+            `<option value="${escapeHtml(c.category_id)}">${escapeHtml(c.category_name)}</option>`
+          ).join('');
+        });
+
+        ['addUnitId', 'editUnitId'].forEach(id => {
+          const el = document.getElementById(id);
+          el.innerHTML = units.map(u =>
+            `<option value="${escapeHtml(u.unit_id)}">${escapeHtml(u.unit_name)} (${escapeHtml(u.unit_code)})</option>`
+          ).join('');
+        });
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0, 1, 10] },
+          { responsivePriority: 2, targets: [2, 3, 4, 9] },
+          { responsivePriority: 3, targets: [5, 6, 7, 8] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const readProductForm = (prefix) => ({
+        product_code: document.getElementById(prefix + 'ProductCode').value.trim().toUpperCase(),
+        product_name: document.getElementById(prefix + 'ProductName').value.trim(),
+        product_type: document.getElementById(prefix + 'ProductType').value,
+        category_id: document.getElementById(prefix + 'CategoryId').value,
+        unit_id: document.getElementById(prefix + 'UnitId').value,
+        purchase_price: parseFloat(document.getElementById(prefix + 'PurchasePrice').value),
+        selling_price: parseFloat(document.getElementById(prefix + 'SellingPrice').value),
+        reorder_level: parseInt(document.getElementById(prefix + 'ReorderLevel').value, 10),
+        current_stock: parseInt(document.getElementById(prefix + 'CurrentStock').value, 10),
+        status: document.getElementById(prefix + 'ProductStatus').value
+      });
+
+      const validateProduct = (data, excludeId) => {
+        if (!data.product_code || !data.product_name || !data.category_id || !data.unit_id) return 'Required fields are missing.';
+        if (codeExists(data.product_code, excludeId)) return 'Product code already exists.';
+        if ([data.purchase_price, data.selling_price, data.reorder_level, data.current_stock].some(v => Number.isNaN(v) || v < 0)) return 'Prices, reorder level, and stock must be valid non-negative numbers.';
+        return '';
+      };
+
+      const fillEditForm = (p) => {
+        document.getElementById('editProductIdHidden').value = p.product_id;
+        document.getElementById('editProductCode').value = p.product_code;
+        document.getElementById('editProductName').value = p.product_name;
+        document.getElementById('editProductType').value = p.product_type;
+        document.getElementById('editCategoryId').value = p.category_id;
+        document.getElementById('editUnitId').value = p.unit_id;
+        document.getElementById('editPurchasePrice').value = p.purchase_price;
+        document.getElementById('editSellingPrice').value = p.selling_price;
+        document.getElementById('editReorderLevel').value = p.reorder_level;
+        document.getElementById('editCurrentStock').value = p.current_stock;
+        document.getElementById('editProductStatus').value = p.status;
+      };
+
+      const fillViewModal = (p) => {
+        document.getElementById('viewProductId').textContent = p.product_id;
+        document.getElementById('viewProductCode').textContent = p.product_code;
+        document.getElementById('viewProductName').textContent = p.product_name;
+        document.getElementById('viewCategoryName').textContent = p.category_name;
+        document.getElementById('viewUnitLabel').textContent = `${getUnit(p.unit_id)?.unit_name || '—'} (${p.unit_code})`;
+        document.getElementById('viewPurchasePrice').textContent = formatMoney(p.purchase_price);
+        document.getElementById('viewSellingPrice').textContent = formatMoney(p.selling_price);
+        document.getElementById('viewReorderLevel').textContent = p.reorder_level;
+        document.getElementById('viewCurrentStock').innerHTML = stockCell(p.current_stock, p.reorder_level);
+        document.getElementById('viewCreatedAt').textContent = p.created_at;
+        document.getElementById('viewProductTypeContainer').innerHTML = typeBadge(p.product_type);
+        document.getElementById('viewProductStatusContainer').innerHTML = statusBadge(p.status);
+      };
+
+      populateSelects();
+
+      $('#btnRefresh').on('click', () => refreshTable());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('addProductForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const data = readProductForm('add');
+        const error = validateProduct(data);
+        if (error){ alert(error); return; }
+
+        const nextNum = products.length
+          ? Math.max(...products.map(x => parseInt(String(x.product_id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        products.push(enrichProduct({
+          product_id: `PRD-${String(nextNum).padStart(4,'0')}`,
+          created_at: new Date().toISOString().slice(0,10),
+          ...data
+        }));
+
+        ev.target.reset();
+        document.getElementById('addCurrentStock').value = '0';
+        document.getElementById('addProductStatus').value = 'active';
+        bootstrap.Modal.getInstance(document.getElementById('addProductModal'))?.hide();
+        refreshTable();
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const product = products.find(x => x.product_id === id);
+        if (!product) return;
+
+        if (action === 'view'){
+          fillViewModal(product);
+          new bootstrap.Modal(document.getElementById('viewProductModal')).show();
+          return;
+        }
+
+        if (action === 'edit'){
+          fillEditForm(product);
+          new bootstrap.Modal(document.getElementById('editProductModal')).show();
+          return;
+        }
+
+        if (action === 'delete'){
+          document.getElementById('deleteProductIdHidden').value = product.product_id;
+          document.getElementById('deleteProductTitle').textContent = `Delete "${product.product_name}"?`;
+          document.getElementById('deleteProductMessage').textContent = `${product.product_code} • ${product.product_id}. This action cannot be undone.`;
+          new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
+        }
+      });
+
+      document.getElementById('editProductForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('editProductIdHidden').value;
+        const product = products.find(x => x.product_id === id);
+        if (!product) return;
+
+        const data = readProductForm('edit');
+        const error = validateProduct(data, id);
+        if (error){ alert(error); return; }
+
+        Object.assign(product, data);
+        enrichProduct(product);
+
+        bootstrap.Modal.getInstance(document.getElementById('editProductModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('deleteProductForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('deleteProductIdHidden').value;
+        products = products.filter(x => x.product_id !== id);
+        bootstrap.Modal.getInstance(document.getElementById('deleteProductModal'))?.hide();
+        refreshTable();
+      });
+
+      document.addEventListener('DOMContentLoaded', () => refreshTable());
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roles - Baryal ERP</title>
+
+  <!-- AdminLTE 4 (Bootstrap 5) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <!-- DataTables + Buttons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-surface:#ffffff;
+      --erp-muted:#6b7280;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .wrapper{ min-height: 100vh; }
+
+    .main-sidebar{
+      background: var(--erp-dark-sidebar) !important;
+    }
+
+    .main-sidebar .brand-link{
+      background: linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75));
+    }
+
+    .main-sidebar .nav-treeview{
+      background: rgba(255,255,255,.03);
+    }
+
+    .main-sidebar .nav-link{
+      padding-top: .65rem;
+      padding-bottom: .65rem;
+    }
+
+    .erp-card{
+      border-radius: 1rem;
+      border: 1px solid rgba(11,42,74,.10);
+      box-shadow: 0 10px 24px rgba(11,42,74,.06);
+      overflow: hidden;
+    }
+
+    .page-title{
+      color: var(--erp-primary);
+      font-weight: 950;
+      letter-spacing: -0.01em;
+    }
+
+    /* DataTables polish */
+    .table thead th{
+      font-weight: 850;
+      color: rgba(0,0,0,.75);
+      background: rgba(11,42,74,.04);
+      border-bottom-width: 1px;
+    }
+
+    .table tbody td{
+      vertical-align: middle;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{
+      padding-top: .1rem;
+    }
+
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width: 575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+    }
+
+    /* Buttons */
+    .btn-erp{
+      background: var(--erp-primary);
+      color: #fff;
+      border-color: var(--erp-primary);
+    }
+    .btn-erp:hover{
+      background: #0e3a64;
+      border-color: #0e3a64;
+      color: #fff;
+    }
+
+    /* Modal header gradients */
+    .modal-header.bg-erp{
+      background: linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85));
+      color: #fff;
+    }
+
+    /* Badges */
+    .badge-erp{
+      background: rgba(11,42,74,.08);
+      color: var(--erp-primary);
+      border: 1px solid rgba(11,42,74,.14);
+    }
+
+    /* Table action icons */
+    .action-btn{
+      cursor: pointer;
+      border-radius: .7rem;
+      padding: .35rem .5rem;
+    }
+
+    /* Improve checkbox alignment */
+    .form-check-input{ margin-top: .2rem; }
+
+    [data-bs-theme="dark"] .main-header,
+    [data-bs-theme="dark"] .content-wrapper,
+    [data-bs-theme="dark"] .app-main{
+      color: rgba(255,255,255,.9);
+    }
+
+    html[data-bs-theme="dark"] .erp-card{
+      background: rgba(255,255,255,.03);
+      border-color: rgba(255,255,255,.10) !important;
+      box-shadow: none;
+    }
+
+    html[data-bs-theme="dark"] .table thead th{
+      color: rgba(255,255,255,.88);
+      background: rgba(255,255,255,.06);
+    }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <!-- Top Navbar -->
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-shield-halved text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color: var(--erp-primary);">User Access Control</div>
+              <div class="text-muted small" style="margin-top:-1px;">Roles & Permissions</div>
+            </div>
+          </div>
+
+          <form class="d-none d-md-flex ms-4" style="max-width: 620px; flex: 1;" role="search">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text" style="background: rgba(11,42,74,.06); border-color: rgba(11,42,74,.12);">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--erp-primary);"></i>
+              </span>
+              <input type="text" class="form-control" placeholder="Search roles..." id="globalSearch" />
+              <button class="btn" type="button" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" id="btnSearch">
+                Search
+              </button>
+            </div>
+          </form>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item text-danger" href="#" id="logoutBtn">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="#roles" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing: .2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="#dashboard" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="#roles" class="nav-link active"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="#permissions" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="#users" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Roles</h1>
+              </div>
+              <div class="text-muted small mt-2">Manage role definitions, audit-ready metadata, and actions.</div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn" type="button" id="btnRefresh" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+              <button class="btn btn-erp" type="button" id="btnAddRole" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Role
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="container-fluid">
+          <div class="card erp-card">
+            <div class="card-header d-flex align-items-center justify-content-between" style="background: rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-user-shield text-primary"></i>
+                <span>Roles DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search, Pagination, Export
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="rolesTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 90px;">ID</th>
+                      <th>Role Name</th>
+                      <th style="width: 22%;">Description</th>
+                      <th style="width: 14%;">Status</th>
+                      <th style="width: 18%;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Role Modal -->
+  <div class="modal fade" id="addRoleModal" tabindex="-1" aria-hidden="true" aria-labelledby="addRoleModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addRoleModalLabel">
+            <i class="fa-solid fa-plus me-2"></i>Add Role
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addRoleForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addRoleName" name="roleName" placeholder="Role Name" required />
+                  <label for="addRoleName"><i class="fa-solid fa-user-tag me-2"></i>Role Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addRoleStatus" name="status" required>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <label for="addRoleStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="addRoleDesc" name="description" style="height: 110px" placeholder="Description" required></textarea>
+                  <label for="addRoleDesc"><i class="fa-solid fa-align-left me-2"></i>Description</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background: rgba(11,42,74,.05); border: 1px solid rgba(11,42,74,.12); color: var(--erp-primary);">
+                  <i class="fa-solid fa-circle-exclamation me-2"></i>
+                  Backend integration is not wired in this UI-only template. Data is stored in-memory for demo.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-erp" id="btnSubmitAdd">
+              <i class="fa-solid fa-floppy-disk me-2"></i>Save Role
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Role Modal -->
+  <div class="modal fade" id="editRoleModal" tabindex="-1" aria-hidden="true" aria-labelledby="editRoleModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editRoleModalLabel">
+            <i class="fa-solid fa-pen-to-square me-2"></i>Edit Role
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editRoleForm" autocomplete="off">
+          <input type="hidden" id="editRoleId" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editRoleName" name="roleName" placeholder="Role Name" required />
+                  <label for="editRoleName"><i class="fa-solid fa-user-tag me-2"></i>Role Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editRoleStatus" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <label for="editRoleStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="editRoleDesc" name="description" style="height: 110px" placeholder="Description" required></textarea>
+                  <label for="editRoleDesc"><i class="fa-solid fa-align-left me-2"></i>Description</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background: rgba(11,42,74,.05); border: 1px solid rgba(11,42,74,.12); color: var(--erp-primary);">
+                  <i class="fa-solid fa-shield me-2"></i>
+                  Changes will update the table immediately (demo-only).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-erp" id="btnSubmitEdit">
+              <i class="fa-solid fa-save me-2"></i>Update Role
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteRoleModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteRoleModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background: linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteRoleModalLabel">
+            <i class="fa-solid fa-trash me-2"></i>Delete Role
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteRoleForm">
+          <input type="hidden" id="deleteRoleId" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size: 1.8rem; line-height: 1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteRoleTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteRoleMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-danger" id="btnConfirmDelete">
+              <i class="fa-solid fa-trash me-2"></i>Delete
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+
+  <script>
+    (function(){
+      // Demo in-memory store
+      let roles = [
+        { id: 1, name: 'System Admin', description: 'Full access to all ERP modules.', status: 'active' },
+        { id: 2, name: 'Warehouse Manager', description: 'Manage warehouses, stock movements, and adjustments.', status: 'active' },
+        { id: 3, name: 'Production Planner', description: 'Create production plans and monitor batch statuses.', status: 'active' },
+        { id: 4, name: 'Quality Control', description: 'Perform QC checks and approve batches.', status: 'inactive' }
+      ];
+
+      const $tableEl = $('#rolesTable');
+      const $tbody = $tableEl.find('tbody');
+
+      const statusBadge = (status) => {
+        if (status === 'active') return '<span class="badge text-bg-success">Active</span>';
+        return '<span class="badge text-bg-secondary">Inactive</span>';
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const r of roles){
+          const row = `
+            <tr>
+              <td class="fw-bold">${r.id}</td>
+              <td>${escapeHtml(r.name)}</td>
+              <td>${escapeHtml(r.description)}</td>
+              <td>${statusBadge(r.status)}</td>
+              <td>
+                <div class="d-flex gap-2 justify-content-center justify-content-md-start">
+                  <button class="btn btn-sm action-btn" style="background: rgba(11,42,74,.06); color: var(--erp-primary); border: 1px solid rgba(11,42,74,.12);" data-action="edit" data-id="${r.id}" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn btn-sm action-btn" style="background: rgba(220,53,69,.08); color: #b42318; border: 1px solid rgba(220,53,69,.18);" data-action="delete" data-id="${r.id}" title="Delete">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const escapeHtml = (s) => {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          '&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'
+        }[c]));
+      };
+
+      const commonDt = {
+        pageLength: 8,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        dom: 'Bfrtip',
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel' },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF' },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print' }
+        ],
+        language: {
+          search: "Search:",
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+
+      const initTable = () => {
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const refreshTable = () => {
+        dt.destroy();
+        initTable();
+      };
+
+      // Global search (UI button)
+      $('#btnSearch').on('click', () => {
+        const q = ($('#globalSearch').val() || '').trim();
+        if (!dt) return;
+        dt.search(q).draw();
+      });
+
+      $('#globalSearch').on('keyup', (e) => {
+        if (e.key === 'Enter') $('#btnSearch').click();
+      });
+
+      // Refresh
+      $('#btnRefresh').on('click', () => {
+        $('#globalSearch').val('');
+        if (dt) dt.search('').draw();
+      });
+
+      // Add Role
+      const addModal = new bootstrap.Modal(document.getElementById('addRoleModal'));
+      const addForm = document.getElementById('addRoleForm');
+      addForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('addRoleName').value.trim();
+        const desc = document.getElementById('addRoleDesc').value.trim();
+        const status = document.getElementById('addRoleStatus').value;
+
+        const nextId = roles.length ? Math.max(...roles.map(x => x.id)) + 1 : 1;
+        roles.push({ id: nextId, name, description: desc, status });
+
+        // reset
+        addForm.reset();
+        $('#addRoleStatus').val('active');
+
+        // update
+        refreshTable();
+        addModal.hide();
+      });
+
+      // Click handlers for edit/delete
+      $tableEl.on('click', 'button[data-action="edit"]', (ev) => {
+        const id = Number(ev.currentTarget.getAttribute('data-id'));
+        const role = roles.find(r => r.id === id);
+        if (!role) return;
+
+        document.getElementById('editRoleId').value = role.id;
+        document.getElementById('editRoleName').value = role.name;
+        document.getElementById('editRoleDesc').value = role.description;
+        document.getElementById('editRoleStatus').value = role.status;
+
+        new bootstrap.Modal(document.getElementById('editRoleModal')).show();
+      });
+
+      $tableEl.on('click', 'button[data-action="delete"]', (ev) => {
+        const id = Number(ev.currentTarget.getAttribute('data-id'));
+        const role = roles.find(r => r.id === id);
+        if (!role) return;
+
+        document.getElementById('deleteRoleId').value = role.id;
+        document.getElementById('deleteRoleTitle').textContent = `Delete "${role.name}"?`;
+        document.getElementById('deleteRoleMessage').textContent = `Role ID ${role.id}. This action cannot be undone.`;
+
+        new bootstrap.Modal(document.getElementById('deleteRoleModal')).show();
+      });
+
+      // Edit Role Submit
+      const editForm = document.getElementById('editRoleForm');
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = Number(document.getElementById('editRoleId').value);
+        const name = document.getElementById('editRoleName').value.trim();
+        const desc = document.getElementById('editRoleDesc').value.trim();
+        const status = document.getElementById('editRoleStatus').value;
+
+        const idx = roles.findIndex(r => r.id === id);
+        if (idx === -1) return;
+
+        roles[idx] = { ...roles[idx], name, description: desc, status };
+
+        refreshTable();
+        bootstrap.Modal.getInstance(document.getElementById('editRoleModal'))?.hide();
+      });
+
+      // Delete Role Submit
+      const deleteForm = document.getElementById('deleteRoleForm');
+      deleteForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = Number(document.getElementById('deleteRoleId').value);
+        roles = roles.filter(r => r.id !== id);
+
+        refreshTable();
+        bootstrap.Modal.getInstance(document.getElementById('deleteRoleModal'))?.hide();
+      });
+
+      // Logout demo
+      $('#logoutBtn').on('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'auth/login.html';
+      });
+
+      // Section ribbon styling (used in header)
+      const style = document.createElement('style');
+      style.textContent = `
+        .section-ribbon{height:6px;border-radius:999px;background: linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px;}
+      `;
+      document.head.appendChild(style);
+
+      // Init
+      document.addEventListener('DOMContentLoaded', () => {
+        initTable();
+      });
+    })();
+  </script>
+</body>
+</html>
+

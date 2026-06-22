@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recipes / Bill Of Materials (BOM)</title>
+
+  <!-- AdminLTE 4 (Bootstrap 5) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+
+  <!-- OverlayScrollbars -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <!-- DataTables + Buttons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background: var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background: linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background: rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius: 1rem;
+      border: 1px solid rgba(11,42,74,.10);
+      box-shadow: 0 10px 24px rgba(11,42,74,.06);
+      overflow: hidden;
+      background: rgba(255,255,255,.92);
+    }
+
+    .page-title{
+      color: var(--erp-primary);
+      font-weight: 950;
+      letter-spacing: -0.01em;
+    }
+
+    .section-ribbon{ height:6px;border-radius:999px;background: linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+
+    .kpi-card{
+      border-radius:.95rem;
+      border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06);
+      overflow:hidden;
+      background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background: linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .table.dataTable{ width:100% !important; }
+    .table thead th{
+      font-weight: 900;
+      color: rgba(0,0,0,.75);
+      background: rgba(11,42,74,.04);
+      border-bottom-width: 1px;
+    }
+
+    .status-badge{ font-weight: 850; border:1px solid transparent; white-space:nowrap; }
+    .status-active{ background: rgba(25,135,84,.12); color: var(--erp-success); border-color: rgba(25,135,84,.25); }
+    .status-inactive{ background: rgba(220,53,69,.12); color: var(--erp-danger); border-color: rgba(220,53,69,.25); }
+    .status-draft{ background: rgba(253,126,20,.12); color: var(--erp-warning); border-color: rgba(253,126,20,.25); }
+
+    .action-btn{ border-radius:.75rem; padding:.35rem .55rem; }
+
+    .details-table td, .details-table th{ padding: .65rem .75rem; }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <!-- Top Navbar -->
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-bread-slice text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color: var(--erp-primary);">Baryal ERP</div>
+              <div class="text-muted small" style="margin-top:-1px;">Manufacturing ERP</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">
+                <img src="https://placehold.co/36x36" class="rounded-circle" alt="User" />
+                <span class="d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Left Sidebar -->
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="#recipes" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing: .2px;">Baryal ERP</span>
+        </a>
+
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="index.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+
+              <li class="nav-item has-treeview">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fa-solid fa-industry-windows"></i>
+                  <p>Production Management</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="production/recipes_bom.html" class="nav-link active"><i class="fa-solid fa-list-check me-2"></i><p>Recipes</p></a></li>
+                </ul>
+              </li>
+
+              <li class="nav-item"><a href="#" class="nav-link"><i class="nav-icon fa-solid fa-circle-check"></i><p>Reports</p></a></li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main" id="recipes">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Recipes / Bill Of Materials (BOM)</h1>
+              </div>
+              <div class="text-muted small mt-2">Professional Manufacturing ERP • manage recipes, BOMs, quantities, cost estimates, and actions.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn" type="button" id="btnRefresh" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+              <button class="btn" type="button" id="btnCreateRecipe" data-bs-toggle="modal" data-bs-target="#createRecipeModal" style="background: var(--erp-primary); color:#fff; border-color: var(--erp-primary);">
+                <i class="fa-solid fa-plus me-2"></i>Create Recipe
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="container-fluid">
+
+          <!-- Statistics Cards -->
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Recipes</div>
+                      <div class="kpi-value" id="kpiTotalRecipes">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-list-check" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Active Recipes</div>
+                      <div class="kpi-value" id="kpiActiveRecipes">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-circle-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(11,42,74,1), rgba(253,126,20,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Raw Materials</div>
+                      <div class="kpi-value" id="kpiRawMaterials">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-boxes-stacked" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.95));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Finished Products</div>
+                      <div class="kpi-value" id="kpiFinishedProducts">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-cookie-bite" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DataTable -->
+          <div class="card erp-card mt-2">
+            <div class="card-header d-flex align-items-center justify-content-between" style="background: rgba(11,42,74,.04);">
+              <div class="d-flex align-items-center gap-2" style="font-weight:900; color:var(--erp-primary);">
+                <i class="fa-solid fa-diagram-project text-primary"></i>
+                <span>Recipes BOM Index</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="recipesTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th>Recipe ID</th>
+                      <th>Recipe Name</th>
+                      <th>Finished Product</th>
+                      <th>Batch Size</th>
+                      <th>Total Materials</th>
+                      <th>Estimated Cost</th>
+                      <th>Status</th>
+                      <th>Created Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipe Details Section -->
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between" style="background: rgba(11,42,74,.04);">
+              <div class="d-flex align-items-center gap-2" style="font-weight:900; color:var(--erp-primary);">
+                <i class="fa-solid fa-list-check text-primary"></i>
+                <span>Recipe Details • Bill Of Materials (BOM)</span>
+              </div>
+              <div class="text-muted small fw-semibold" id="bomMeta">Select a recipe to view its materials.</div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover details-table align-middle" style="margin-bottom:0;">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:45%;">Raw Material</th>
+                      <th style="width:25%;">Required Quantity</th>
+                      <th style="width:15%;">Unit</th>
+                      <th style="width:15%;">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody id="bomTableBody">
+                    <tr>
+                      <td colspan="4" class="text-center text-muted py-4">
+                        <i class="fa-solid fa-circle-info me-2"></i>No recipe selected.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- Create Recipe -->
+  <div class="modal fade" id="createRecipeModal" tabindex="-1" aria-hidden="true" aria-labelledby="createRecipeModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;">
+          <h5 class="modal-title" id="createRecipeModalLabel"><i class="fa-solid fa-plus me-2"></i>Create Recipe</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="createRecipeForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="createRecipeName" placeholder="Recipe Name" required />
+                  <label for="createRecipeName"><i class="fa-solid fa-list-check me-2"></i>Recipe Name</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="createFinishedProduct" placeholder="Finished Product" required />
+                  <label for="createFinishedProduct"><i class="fa-solid fa-boxes-stacked me-2"></i>Finished Product</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="createBatchSize" placeholder="Batch Size" min="1" required />
+                  <label for="createBatchSize"><i class="fa-solid fa-layer-group me-2"></i>Batch Size</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="createRecipeStatus" required>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                  <label for="createRecipeStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="alert" style="background: rgba(11,42,74,.05); border: 1px solid rgba(11,42,74,.12); color: var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-diagram-project me-2"></i>Demo mode: recipes stored in-memory.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn" style="background: var(--erp-primary); color:#fff; border-color: var(--erp-primary);">
+              <i class="fa-solid fa-floppy-disk me-2"></i>Save Recipe
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Recipe -->
+  <div class="modal fade" id="editRecipeModal" tabindex="-1" aria-hidden="true" aria-labelledby="editRecipeModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;">
+          <h5 class="modal-title" id="editRecipeModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Recipe</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editRecipeForm" autocomplete="off">
+          <input type="hidden" id="editRecipeIdHidden" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editRecipeName" placeholder="Recipe Name" required />
+                  <label for="editRecipeName"><i class="fa-solid fa-list-check me-2"></i>Recipe Name</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editFinishedProduct" placeholder="Finished Product" required />
+                  <label for="editFinishedProduct"><i class="fa-solid fa-boxes-stacked me-2"></i>Finished Product</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editBatchSize" placeholder="Batch Size" min="1" required />
+                  <label for="editBatchSize"><i class="fa-solid fa-layer-group me-2"></i>Batch Size</label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editRecipeStatus" required>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                  <label for="editRecipeStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn" style="background: var(--erp-primary); color:#fff; border-color: var(--erp-primary);">
+              <i class="fa-solid fa-save me-2"></i>Update Recipe
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- View Recipe -->
+  <div class="modal fade" id="viewRecipeModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewRecipeModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;">
+          <h5 class="modal-title" id="viewRecipeModalLabel"><i class="fa-solid fa-eye me-2"></i>View Recipe</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background: rgba(11,42,74,.03); border-color: rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-diagram-project" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewRecipeName">—</div>
+                      <div class="text-muted small" id="viewRecipeId">—</div>
+                    </div>
+                  </div>
+
+                  <hr style="border-color: rgba(11,42,74,.12);" class="my-4" />
+
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-boxes-stacked me-2"></i>Finished Product</div>
+                        <div class="fw-semibold" id="viewFinishedProduct">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-layer-group me-2"></i>Batch Size</div>
+                        <div class="fw-semibold" id="viewBatchSize">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-boxes-stacked me-2"></i>Total Materials</div>
+                        <div class="fw-semibold" id="viewTotalMaterials">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-coins me-2"></i>Estimated Cost</div>
+                        <div class="fw-semibold" id="viewEstimatedCost">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                        <div id="viewRecipeStatusContainer">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small fw-semibold"><i class="fa-regular fa-calendar me-2"></i>Created Date</div>
+                        <div class="fw-semibold" id="viewCreatedDate">—</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-3 p-md-4">
+                  <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+                    <div class="fw-bold" style="color:var(--erp-primary);"><i class="fa-solid fa-list-check me-2"></i>Raw Materials (BOM)</div>
+                    <button class="btn" type="button" id="btnAddBomRow" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-plus me-2"></i>Add Row
+                    </button>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle" style="margin-bottom:0;">
+                      <thead class="table-light">
+                        <tr>
+                          <th style="width:40%;">Raw Material</th>
+                          <th style="width:22%;">Required Quantity</th>
+                          <th style="width:15%;">Unit</th>
+                          <th style="width:23%;">Cost</th>
+                          <th style="width:40px;"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="viewBomTbody"></tbody>
+                    </table>
+                  </div>
+
+                  <div class="alert" style="background: rgba(11,42,74,.05); border: 1px solid rgba(11,42,74,.12); color: var(--erp-primary); margin-top:1rem;">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>UI demo: you can add/remove BOM rows here.
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn" id="btnSaveBomChanges" style="background: var(--erp-primary); color:#fff; border-color: var(--erp-primary);">
+            <i class="fa-solid fa-floppy-disk me-2"></i>Save BOM
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation -->
+  <div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteRecipeModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85)); color:#fff;">
+          <h5 class="modal-title" id="deleteRecipeModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Confirmation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteRecipeForm">
+          <input type="hidden" id="deleteRecipeIdHidden" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size: 1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteRecipeTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteRecipeMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background: rgba(11,42,74,.08); color: var(--erp-primary); border-color: rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger" id="btnConfirmDeleteRecipe"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      // In-memory demo data
+      let recipes = [
+        {
+          id:'RCP-0001',
+          name:'Chocolate Chip Cookies',
+          finishedProduct:'Chocolate Chip Cookies 500g',
+          batchSize:2000,
+          status:'active',
+          createdDate:'2026-06-10',
+          bom:[
+            { rawMaterial:'Wheat Flour', qty:1500, unit:'kg', cost:1450.00 },
+            { rawMaterial:'Sugar', qty:650, unit:'kg', cost:780.00 },
+            { rawMaterial:'Butter', qty:400, unit:'kg', cost:1120.00 },
+            { rawMaterial:'Chocolate Chips', qty:350, unit:'kg', cost:1750.00 }
+          ]
+        },
+        {
+          id:'RCP-0002',
+          name:'Vanilla Cream Biscuits',
+          finishedProduct:'Vanilla Cream Biscuits 1kg',
+          batchSize:1800,
+          status:'active',
+          createdDate:'2026-05-25',
+          bom:[
+            { rawMaterial:'Wheat Flour', qty:1200, unit:'kg', cost:1160.00 },
+            { rawMaterial:'Sugar', qty:520, unit:'kg', cost:620.00 },
+            { rawMaterial:'Vanilla Essence', qty:18, unit:'L', cost:255.00 },
+            { rawMaterial:'Cream Filling', qty:360, unit:'kg', cost:980.00 }
+          ]
+        },
+        {
+          id:'RCP-0003',
+          name:'Spiced Oat Crackers',
+          finishedProduct:'Spiced Oat Crackers 750g',
+          batchSize:1400,
+          status:'draft',
+          createdDate:'2026-06-14',
+          bom:[
+            { rawMaterial:'Oats', qty:900, unit:'kg', cost:950.00 },
+            { rawMaterial:'Vegetable Fats', qty:220, unit:'kg', cost:410.00 },
+            { rawMaterial:'Spices Mix', qty:35, unit:'kg', cost:210.00 },
+            { rawMaterial:'Packaging', qty:1400, unit:'pcs', cost:560.00 }
+          ]
+        }
+      ];
+
+      let selectedRecipeId = null;
+      let viewModalRecipeId = null;
+      let dt = null;
+
+      const $recipesTable = $('#recipesTable');
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;',
+        '<': '<',
+        '>': '>',
+        '"': '"',
+        "'": '&#39;'
+      }[c]));
+
+      const statusBadge = (status) => {
+        const s = String(status || '').toLowerCase();
+        if (s === 'active') return '<span class="status-badge status-active">Active</span>';
+        if (s === 'inactive') return '<span class="status-badge status-inactive">Inactive</span>';
+        return '<span class="status-badge status-draft">Draft</span>';
+      };
+
+      const calcMaterialsCount = (r) => (r.bom || []).length;
+      const calcTotalCost = (r) => (r.bom || []).reduce((sum, x) => sum + (Number(x.cost) || 0), 0);
+
+      const renderKPIs = () => {
+        const totalRecipes = recipes.length;
+        const activeRecipes = recipes.filter(r => String(r.status).toLowerCase() === 'active').length;
+
+        const rawMaterials = new Set();
+        for (const r of recipes) for (const b of (r.bom || [])) rawMaterials.add(String(b.rawMaterial));
+
+        const finishedProducts = new Set(recipes.map(r => String(r.finishedProduct)));
+
+        document.getElementById('kpiTotalRecipes').textContent = totalRecipes;
+        document.getElementById('kpiActiveRecipes').textContent = activeRecipes;
+        document.getElementById('kpiRawMaterials').textContent = rawMaterials.size;
+        document.getElementById('kpiFinishedProducts').textContent = finishedProducts.size;
+      };
+
+      const renderBomInline = (recipeId) => {
+        const r = recipes.find(x => x.id === recipeId);
+        const $tbody = document.getElementById('bomTableBody');
+        const $meta = document.getElementById('bomMeta');
+
+        if (!r) {
+          $meta.textContent = 'Select a recipe to view its materials.';
+          $tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4"><i class="fa-solid fa-circle-info me-2"></i>No recipe selected.</td></tr>`;
+          return;
+        }
+
+        $meta.textContent = `${r.id} • ${r.name}`;
+
+        const rows = (r.bom || []).map(b => {
+          const cost = Number(b.cost) || 0;
+          return `
+            <tr>
+              <td>${escapeHtml(b.rawMaterial)}</td>
+              <td>${escapeHtml(b.qty)}</td>
+              <td>${escapeHtml(b.unit)}</td>
+              <td>$${cost.toFixed(2)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        $tbody.innerHTML = rows || `<tr><td colspan="4" class="text-center text-muted py-4">—</td></tr>`;
+      };
+
+      const renderRecipesRows = () => {
+        const $tbody = $recipesTable.find('tbody');
+        $tbody.empty();
+
+        for (const r of recipes) {
+          const totalMaterials = calcMaterialsCount(r);
+          const estimatedCost = calcTotalCost(r);
+
+          const actions = `
+            <div class="dropdown">
+              <button class="btn action-btn" style="background: rgba(11,42,74,.06); color: var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(r.id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(r.id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(r.id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+              </ul>
+            </div>
+          `;
+
+          const row = `
+            <tr role="button" class="recipe-row" data-id="${escapeHtml(r.id)}">
+              <td class="fw-bold">${escapeHtml(r.id)}</td>
+              <td>${escapeHtml(r.name)}</td>
+              <td>${escapeHtml(r.finishedProduct)}</td>
+              <td>${escapeHtml(r.batchSize)}</td>
+              <td>${escapeHtml(totalMaterials)}</td>
+              <td>$${Number(estimatedCost).toFixed(2)}</td>
+              <td>${statusBadge(r.status)}</td>
+              <td>${escapeHtml(r.createdDate)}</td>
+              <td>${actions}</td>
+            </tr>
+          `;
+
+          $tbody.append(row);
+        }
+      };
+
+      const refresh = () => {
+        renderKPIs();
+        renderRecipesRows();
+
+        if (dt) dt.destroy();
+
+        dt = $recipesTable.DataTable({
+          pageLength: 8,
+          lengthChange: false,
+          responsive: true,
+          autoWidth: false,
+          ordering: true,
+          dom: 'Bfrtip',
+          buttons: [
+            { extend:'excelHtml5', className:'btn-sm btn', text:'<i class="fa-solid fa-file-excel me-1"></i>Excel', exportOptions:{ columns: ':not(:last-child)' } },
+            { extend:'pdfHtml5', className:'btn-sm btn', text:'<i class="fa-solid fa-file-pdf me-1"></i>PDF', exportOptions:{ columns: ':not(:last-child)' } },
+            { extend:'print', className:'btn-sm btn', text:'<i class="fa-solid fa-print me-1"></i>Print', exportOptions:{ columns: ':not(:last-child)' } }
+          ],
+          columnDefs: [
+            { responsivePriority: 1, targets: [0,1,2] },
+            { responsivePriority: 2, targets: [3,4,5] },
+            { responsivePriority: 3, targets: [6,7] },
+            { orderable: false, targets: -1 }
+          ]
+        });
+      };
+
+      // Events (delegate)
+      $recipesTable.on('click', 'tr.recipe-row', function(e){
+        const id = this.getAttribute('data-id');
+        if (!id) return;
+        selectedRecipeId = id;
+        renderBomInline(id);
+      });
+
+      $recipesTable.on('click', 'a[data-action]', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        const id = this.getAttribute('data-id');
+        const action = this.getAttribute('data-action');
+        const r = recipes.find(x => x.id === id);
+        if (!r) return;
+
+        if (action === 'view') {
+          viewModalRecipeId = id;
+          // Header
+          document.getElementById('viewRecipeId').textContent = r.id;
+          document.getElementById('viewRecipeName').textContent = r.name;
+          document.getElementById('viewFinishedProduct').textContent = r.finishedProduct;
+          document.getElementById('viewBatchSize').textContent = r.batchSize;
+          document.getElementById('viewTotalMaterials').textContent = calcMaterialsCount(r);
+          document.getElementById('viewEstimatedCost').textContent = `$${calcTotalCost(r).toFixed(2)}`;
+          document.getElementById('viewRecipeStatusContainer').innerHTML = statusBadge(r.status);
+          document.getElementById('viewCreatedDate').textContent = r.createdDate;
+
+          // BOM rows editable
+          const tbody = document.getElementById('viewBomTbody');
+          tbody.innerHTML = '';
+
+          for (let i=0;i<(r.bom||[]).length;i++){
+            const b = r.bom[i];
+            tbody.insertAdjacentHTML('beforeend', `
+              <tr>
+                <td>
+                  <input type="text" class="form-control form-control-sm" data-field="rawMaterial" value="${escapeHtml(b.rawMaterial)}" />
+                </td>
+                <td>
+                  <input type="number" step="any" class="form-control form-control-sm" data-field="qty" value="${escapeHtml(b.qty)}" />
+                </td>
+                <td>
+                  <input type="text" class="form-control form-control-sm" data-field="unit" value="${escapeHtml(b.unit)}" />
+                </td>
+                <td>
+                  <input type="number" step="any" class="form-control form-control-sm" data-field="cost" value="${escapeHtml(b.cost)}" />
+                </td>
+                <td>
+                  <button type="button" class="btn btn-sm" data-action="removeBomRow" style="background: rgba(220,53,69,.10); color: var(--erp-danger); border:1px solid rgba(220,53,69,.20);"><i class="fa-solid fa-trash"></i></button>
+                </td>
+              </tr>
+            `);
+          }
+
+          new bootstrap.Modal(document.getElementById('viewRecipeModal')).show();
+          return;
+        }
+
+        if (action === 'edit') {
+          document.getElementById('editRecipeIdHidden').value = r.id;
+          document.getElementById('editRecipeName').value = r.name;
+          document.getElementById('editFinishedProduct').value = r.finishedProduct;
+          document.getElementById('editBatchSize').value = r.batchSize;
+          document.getElementById('editRecipeStatus').value = r.status;
+          new bootstrap.Modal(document.getElementById('editRecipeModal')).show();
+          return;
+        }
+
+        if (action === 'delete') {
+          document.getElementById('deleteRecipeIdHidden').value = r.id;
+          document.getElementById('deleteRecipeTitle').textContent = `Delete "${r.name}"?`;
+          document.getElementById('deleteRecipeMessage').textContent = `Recipe ID ${r.id}. This action cannot be undone.`;
+          new bootstrap.Modal(document.getElementById('deleteRecipeModal')).show();
+          return;
+        }
+      });
+
+      // Add BOM Row in View modal
+      document.getElementById('btnAddBomRow').addEventListener('click', () => {
+        const tbody = document.getElementById('viewBomTbody');
+        const rowHtml = `
+          <tr>
+            <td><input type="text" class="form-control form-control-sm" data-field="rawMaterial" value=""></td>
+            <td><input type="number" step="any" class="form-control form-control-sm" data-field="qty" value="1"></td>
+            <td><input type="text" class="form-control form-control-sm" data-field="unit" value="kg"></td>
+            <td><input type="number" step="any" class="form-control form-control-sm" data-field="cost" value="0"></td>
+            <td>
+              <button type="button" class="btn btn-sm" data-action="removeBomRow" style="background: rgba(220,53,69,.10); color: var(--erp-danger); border:1px solid rgba(220,53,69,.20);"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', rowHtml);
+      });
+
+      // Remove BOM row
+      document.getElementById('viewBomTbody').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action="removeBomRow"]');
+        if (!btn) return;
+        const tr = btn.closest('tr');
+        tr?.remove();
+      });
+
+      // Save BOM changes
+      document.getElementById('btnSaveBomChanges').addEventListener('click', () => {
+        const id = viewModalRecipeId;
+        const r = recipes.find(x => x.id === id);
+        if (!r) return;
+
+        const tbody = document.getElementById('viewBomTbody');
+        const newBom = [];
+
+        for (const tr of tbody.querySelectorAll('tr')) {
+          const getVal = (field) => {
+            const el = tr.querySelector(`[data-field="${field}"]`);
+            return el ? el.value : '';
+          };
+          const rawMaterial = String(getVal('rawMaterial')).trim();
+          const qty = Number(getVal('qty'));
+          const unit = String(getVal('unit')).trim();
+          const cost = Number(getVal('cost'));
+
+          if (!rawMaterial || !unit || Number.isNaN(qty) || Number.isNaN(cost)) continue;
+
+          newBom.push({ rawMaterial, qty, unit, cost });
+        }
+
+        r.bom = newBom;
+
+        bootstrap.Modal.getInstance(document.getElementById('viewRecipeModal'))?.hide();
+
+        refresh();
+        if (selectedRecipeId === id) renderBomInline(id);
+      });
+
+      // Create Recipe
+      document.getElementById('createRecipeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('createRecipeName').value.trim();
+        const finishedProduct = document.getElementById('createFinishedProduct').value.trim();
+        const batchSize = Number(document.getElementById('createBatchSize').value);
+        const status = document.getElementById('createRecipeStatus').value;
+
+        if (!name || !finishedProduct || Number.isNaN(batchSize) || batchSize < 1) return;
+
+        const nextNum = recipes.length
+          ? Math.max(...recipes.map(x => Number(String(x.id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        const id = `RCP-${String(nextNum).padStart(4,'0')}`;
+
+        recipes.push({
+          id,
+          name,
+          finishedProduct,
+          batchSize,
+          status,
+          createdDate: new Date().toISOString().slice(0,10),
+          bom: []
+        });
+
+        e.target.reset();
+        bootstrap.Modal.getInstance(document.getElementById('createRecipeModal'))?.hide();
+        refresh();
+      });
+
+      // Edit Recipe
+      document.getElementById('editRecipeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById('editRecipeIdHidden').value;
+        const r = recipes.find(x => x.id === id);
+        if (!r) return;
+
+        const name = document.getElementById('editRecipeName').value.trim();
+        const finishedProduct = document.getElementById('editFinishedProduct').value.trim();
+        const batchSize = Number(document.getElementById('editBatchSize').value);
+        const status = document.getElementById('editRecipeStatus').value;
+
+        if (!name || !finishedProduct || Number.isNaN(batchSize) || batchSize < 1) return;
+
+        r.name = name;
+        r.finishedProduct = finishedProduct;
+        r.batchSize = batchSize;
+        r.status = status;
+
+        bootstrap.Modal.getInstance(document.getElementById('editRecipeModal'))?.hide();
+        refresh();
+      });
+
+      // Delete Recipe
+      document.getElementById('deleteRecipeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('deleteRecipeIdHidden').value;
+        recipes = recipes.filter(x => x.id !== id);
+        bootstrap.Modal.getInstance(document.getElementById('deleteRecipeModal'))?.hide();
+
+        if (selectedRecipeId === id) {
+          selectedRecipeId = null;
+          renderBomInline(null);
+        }
+        refresh();
+      });
+
+      // Refresh
+      document.getElementById('btnRefresh').addEventListener('click', () => {
+        refresh();
+        if (selectedRecipeId) renderBomInline(selectedRecipeId);
+      });
+
+      // Logout demo
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'auth/login.html';
+      });
+
+      // Initial render
+      document.addEventListener('DOMContentLoaded', () => {
+        refresh();
+      });
+    })();
+  </script>
+</body>
+</html>
+

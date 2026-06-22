@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Production Batches Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-planned{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-in-production{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-completed{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-cancelled{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge{ color:rgba(255,255,255,.92); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-industry text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Production Batches Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Production • Batch Planning • Shop Floor</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="production_orders.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-industry"></i><p>Production</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="recipes_bom.html" class="nav-link"><i class="fa-solid fa-flask me-2"></i><p>Recipes / BOM</p></a></li>
+                  <li class="nav-item"><a href="production_orders.html" class="nav-link active"><i class="fa-solid fa-clipboard-list me-2"></i><p>Production Orders</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Production Batches Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="production_orders.html">Production</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Production Batches</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Track batch lifecycle from planned scheduling to shop-floor completion.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#createBatchModal">
+                <i class="fa-solid fa-plus me-2"></i>Create Batch
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Batches</div>
+                      <div class="kpi-value" id="kpiTotalBatches">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-layer-group" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Running Batches</div>
+                      <div class="kpi-value" id="kpiRunningBatches">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-gears" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Completed Batches</div>
+                      <div class="kpi-value" id="kpiCompletedBatches">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-circle-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(13,110,253,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Production Output</div>
+                      <div class="kpi-value" id="kpiTotalOutput">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-truck-fast" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-diagram-project text-primary"></i>
+                <span>Production Batches DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="productionBatchesTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:140px;">Batch Number</th>
+                      <th style="width:170px;">Production Order</th>
+                      <th>Product Name</th>
+                      <th style="width:140px;">Planned Quantity</th>
+                      <th style="width:150px;">Produced Quantity</th>
+                      <th style="width:150px;">Rejected Quantity</th>
+                      <th style="width:140px;">Start Date</th>
+                      <th style="width:140px;">End Date</th>
+                      <th style="width:160px;">Supervisor</th>
+                      <th style="width:140px;">Status</th>
+                      <th style="width:220px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Create Batch Modal -->
+  <div class="modal fade" id="createBatchModal" tabindex="-1" aria-hidden="true" aria-labelledby="createBatchModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="createBatchModalLabel"><i class="fa-solid fa-plus me-2"></i>Create Batch</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="createBatchForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addBatchNo" placeholder="Batch Number" readonly />
+                  <label for="addBatchNo"><i class="fa-solid fa-hashtag me-2"></i>Batch Number (Auto)</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addProductionOrder" name="production_order_id" required></select>
+                  <label for="addProductionOrder"><i class="fa-solid fa-clipboard-list me-2"></i>Production Order</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addProductName" readonly placeholder="Product Name" />
+                  <label for="addProductName"><i class="fa-solid fa-cookie-bite me-2"></i>Product Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addPlannedQty" name="planned_qty" placeholder="Planned Quantity" min="1" step="1" required />
+                  <label for="addPlannedQty"><i class="fa-solid fa-hashtag me-2"></i>Planned Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addProducedQty" name="produced_qty" placeholder="Produced Quantity" min="0" step="1" required value="0" />
+                  <label for="addProducedQty"><i class="fa-solid fa-boxes-stacked me-2"></i>Produced Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addRejectedQty" name="rejected_qty" placeholder="Rejected Quantity" min="0" step="1" required value="0" />
+                  <label for="addRejectedQty"><i class="fa-solid fa-xmark me-2"></i>Rejected Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addStartDate" name="start_date" required />
+                  <label for="addStartDate"><i class="fa-regular fa-calendar me-2"></i>Start Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addEndDate" name="end_date" required />
+                  <label for="addEndDate"><i class="fa-solid fa-flag-checkered me-2"></i>End Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addSupervisor" name="supervisor_id" required></select>
+                  <label for="addSupervisor"><i class="fa-solid fa-user-tie me-2"></i>Supervisor</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addStatus" name="status" required>
+                    <option value="planned" selected>Planned</option>
+                    <option value="running">Running</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <label for="addStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: batches are kept in-memory.
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Batch</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Batch Modal -->
+  <div class="modal fade" id="editBatchModal" tabindex="-1" aria-hidden="true" aria-labelledby="editBatchModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editBatchModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Batch</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editBatchForm" autocomplete="off">
+          <input type="hidden" id="editBatchIdHidden" />
+
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editBatchNo" readonly />
+                  <label for="editBatchNo"><i class="fa-solid fa-hashtag me-2"></i>Batch Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editProductionOrder" required></select>
+                  <label for="editProductionOrder"><i class="fa-solid fa-clipboard-list me-2"></i>Production Order</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editProductName" readonly placeholder="Product Name" />
+                  <label for="editProductName"><i class="fa-solid fa-cookie-bite me-2"></i>Product Name</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editPlannedQty" min="1" step="1" required />
+                  <label for="editPlannedQty"><i class="fa-solid fa-hashtag me-2"></i>Planned Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editProducedQty" min="0" step="1" required />
+                  <label for="editProducedQty"><i class="fa-solid fa-boxes-stacked me-2"></i>Produced Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editRejectedQty" min="0" step="1" required />
+                  <label for="editRejectedQty"><i class="fa-solid fa-xmark me-2"></i>Rejected Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="editStartDate" required />
+                  <label for="editStartDate"><i class="fa-regular fa-calendar me-2"></i>Start Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="editEndDate" required />
+                  <label for="editEndDate"><i class="fa-solid fa-flag-checkered me-2"></i>End Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editSupervisor" required></select>
+                  <label for="editSupervisor"><i class="fa-solid fa-user-tie me-2"></i>Supervisor</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editStatus" required>
+                    <option value="planned">Planned</option>
+                    <option value="running">Running</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <label for="editStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Batch</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Batch Modal -->
+  <div class="modal fade" id="viewBatchModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewBatchModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewBatchModalLabel"><i class="fa-solid fa-eye me-2"></i>View Batch</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-layer-group" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewBatchNo">—</div>
+                      <div class="text-muted small" id="viewProductName">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                      <div id="viewStatusContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-user-tie me-2"></i>Supervisor</div>
+                      <div class="fw-semibold" id="viewSupervisor">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-calendar me-2"></i>Start Date</div>
+                      <div class="fw-semibold" id="viewStartDate">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-regular fa-calendar me-2"></i>End Date</div>
+                      <div class="fw-semibold" id="viewEndDate">—</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-clipboard-list me-2 text-primary"></i>Batch Details</div>
+
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Production Order</div>
+                      <div class="fw-bold" id="viewProductionOrder">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Planned Quantity</div>
+                      <div class="fw-bold" id="viewPlannedQty">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Produced Quantity</div>
+                      <div class="fw-bold" id="viewProducedQty">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Rejected Quantity</div>
+                      <div class="fw-bold" id="viewRejectedQty">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>UI-only demo modal.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteBatchModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteBatchModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteBatchModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Confirmation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteBatchForm">
+          <input type="hidden" id="deleteBatchIdHidden" />
+
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteBatchTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteBatchMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      const PRODUCTION_ORDERS = [
+        { production_order_id:'PROID-0001', order_no:'PRO-2026-0088', product_name:'Chocolate Biscuit' },
+        { production_order_id:'PROID-0002', order_no:'PRO-2026-0091', product_name:'Chocolate Biscuit' },
+        { production_order_id:'PROID-0004', order_no:'PRO-2026-0098', product_name:'Milk Biscuit' },
+        { production_order_id:'PROID-0005', order_no:'PRO-2026-0102', product_name:'Coconut Biscuit' },
+        { production_order_id:'PROID-0006', order_no:'PRO-2026-0105', product_name:'Milk Biscuit' },
+        { production_order_id:'PROID-0008', order_no:'PRO-2026-0090', product_name:'Coconut Biscuit' }
+      ];
+
+      const SUPERVISORS = [
+        { supervisor_id:'EMP-0002', supervisor_name:'Usman Khalid' },
+        { supervisor_id:'EMP-0001', supervisor_name:'Admin' },
+        { supervisor_id:'EMP-0004', supervisor_name:'Hamza Siddiqui' },
+        { supervisor_id:'EMP-0005', supervisor_name:'Ali Raza' }
+      ];
+
+      let batches = [
+        { production_batch_id:'BATCH-0001', batch_no:'BCH-2026-0001', production_order_id:'PROID-0001', production_order_no:'PRO-2026-0088', product_name:'Chocolate Biscuit', planned_qty:1000, produced_qty:1000, rejected_qty:0, start_date:'2026-06-10', end_date:'2026-06-12', supervisor_id:'EMP-0002', supervisor_name:'Usman Khalid', status:'completed' },
+        { production_batch_id:'BATCH-0002', batch_no:'BCH-2026-0002', production_order_id:'PROID-0002', production_order_no:'PRO-2026-0091', product_name:'Chocolate Biscuit', planned_qty:500, produced_qty:320, rejected_qty:5, start_date:'2026-06-16', end_date:'2026-06-18', supervisor_id:'EMP-0002', supervisor_name:'Usman Khalid', status:'running' },
+        { production_batch_id:'BATCH-0003', batch_no:'BCH-2026-0003', production_order_id:'PROID-0004', production_order_no:'PRO-2026-0098', product_name:'Milk Biscuit', planned_qty:1000, produced_qty:0, rejected_qty:0, start_date:'2026-06-20', end_date:'2026-06-22', supervisor_id:'EMP-0002', supervisor_name:'Usman Khalid', status:'planned' },
+        { production_batch_id:'BATCH-0004', batch_no:'BCH-2026-0004', production_order_id:'PROID-0005', production_order_no:'PRO-2026-0102', product_name:'Coconut Biscuit', planned_qty:800, produced_qty:0, rejected_qty:0, start_date:'2026-06-21', end_date:'2026-06-23', supervisor_id:'EMP-0004', supervisor_name:'Hamza Siddiqui', status:'planned' },
+        { production_batch_id:'BATCH-0005', batch_no:'BCH-2026-0005', production_order_id:'PROID-0006', production_order_no:'PRO-2026-0105', product_name:'Milk Biscuit', planned_qty:1500, produced_qty:920, rejected_qty:18, start_date:'2026-06-19', end_date:'2026-06-21', supervisor_id:'EMP-0002', supervisor_name:'Usman Khalid', status:'running' },
+        { production_batch_id:'BATCH-0006', batch_no:'BCH-2026-0006', production_order_id:'PROID-0008', production_order_no:'PRO-2026-0090', product_name:'Coconut Biscuit', planned_qty:800, produced_qty:0, rejected_qty:0, start_date:'2026-06-12', end_date:'2026-06-14', supervisor_id:'EMP-0005', supervisor_name:'Ali Raza', status:'cancelled' }
+      ];
+
+      const $tableEl = $('#productionBatchesTable');
+      const $tbody = $tableEl.find('tbody');
+      const todayStr = new Date().toISOString().slice(0,10);
+      const currentYear = new Date().getFullYear();
+
+      let dt;
+      let selectedBatchId = null;
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'
+      })[c]);
+
+      const statusBadge = (status) => {
+        const map = {
+          planned: '<span class="badge status-badge badge-planned">Planned</span>',
+          running: '<span class="badge status-badge badge-in-production">Running</span>',
+          completed: '<span class="badge status-badge badge-completed">Completed</span>',
+          cancelled: '<span class="badge status-badge badge-cancelled">Cancelled</span>'
+        };
+        return map[status] || map.planned;
+      };
+
+      const getOrder = (id) => PRODUCTION_ORDERS.find(o => o.production_order_id === id);
+      const getSupervisor = (id) => SUPERVISORS.find(s => s.supervisor_id === id);
+      const getBatch = (id) => batches.find(b => b.production_batch_id === id);
+
+      const calcTotalOutput = () => batches.reduce((sum, b) => sum + (Number(b.produced_qty) || 0), 0);
+
+      const renderKPIs = () => {
+        $('#kpiTotalBatches').text(batches.length);
+        $('#kpiRunningBatches').text(batches.filter(b => b.status === 'running').length);
+        $('#kpiCompletedBatches').text(batches.filter(b => b.status === 'completed').length);
+        $('#kpiTotalOutput').text(calcTotalOutput().toLocaleString('en-PK'));
+      };
+
+      const populateSelects = () => {
+        const orderOpts = PRODUCTION_ORDERS.map(o =>
+          `<option value="${escapeHtml(o.production_order_id)}">${escapeHtml(o.order_no)} — ${escapeHtml(o.product_name)}</option>`
+        ).join('');
+
+        const supervisorOpts = SUPERVISORS.map(s =>
+          `<option value="${escapeHtml(s.supervisor_id)}">${escapeHtml(s.supervisor_name)}</option>`
+        ).join('');
+
+        ['addProductionOrder','editProductionOrder'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = orderOpts;
+        });
+        ['addSupervisor','editSupervisor'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = supervisorOpts;
+        });
+      };
+
+      const syncProductFromOrder = (prefix) => {
+        const orderId = document.getElementById(`${prefix}ProductionOrder`).value;
+        const order = getOrder(orderId);
+        if (!order) return;
+        document.getElementById(`${prefix}ProductName`).value = order.product_name;
+      };
+
+      const generateBatchNo = () => {
+        const nums = batches.map(b => parseInt(String(b.batch_no).replace(/[^0-9]/g,''),10)).filter(n => !Number.isNaN(n));
+        const next = nums.length ? Math.max(...nums) + 1 : 1;
+        return `BCH-${currentYear}-${String(next).padStart(4,'0')}`;
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const b of batches){
+          const isActive = selectedBatchId === b.production_batch_id ? 'order-row-active' : '';
+          const row = `
+            <tr class="${isActive}" data-batch-id="${escapeHtml(b.production_batch_id)}">
+              <td class="fw-bold">${escapeHtml(b.batch_no)}</td>
+              <td>${escapeHtml(b.production_order_no)}</td>
+              <td>${escapeHtml(b.product_name)}</td>
+              <td>${escapeHtml(b.planned_qty)}</td>
+              <td class="fw-semibold">${escapeHtml(b.produced_qty)}</td>
+              <td>${escapeHtml(b.rejected_qty)}</td>
+              <td>${escapeHtml(b.start_date)}</td>
+              <td>${escapeHtml(b.end_date)}</td>
+              <td>${escapeHtml(b.supervisor_name)}</td>
+              <td>${statusBadge(b.status)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(b.production_batch_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(b.production_batch_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(b.production_batch_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 8,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[6,'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0,1,9,6,7] },
+          { responsivePriority: 2, targets: [2,3,4,5,8] },
+          { responsivePriority: 3, targets: [10] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const fillViewModal = (b) => {
+        document.getElementById('viewBatchNo').textContent = b.batch_no;
+        document.getElementById('viewProductName').textContent = b.product_name;
+        document.getElementById('viewStatusContainer').innerHTML = statusBadge(b.status);
+        document.getElementById('viewSupervisor').textContent = b.supervisor_name;
+        document.getElementById('viewStartDate').textContent = b.start_date;
+        document.getElementById('viewEndDate').textContent = b.end_date;
+        document.getElementById('viewProductionOrder').textContent = b.production_order_no;
+        document.getElementById('viewPlannedQty').textContent = b.planned_qty;
+        document.getElementById('viewProducedQty').textContent = b.produced_qty;
+        document.getElementById('viewRejectedQty').textContent = b.rejected_qty;
+      };
+
+      const fillEditModal = (b) => {
+        document.getElementById('editBatchIdHidden').value = b.production_batch_id;
+        document.getElementById('editBatchNo').value = b.batch_no;
+        document.getElementById('editProductionOrder').value = b.production_order_id;
+        document.getElementById('editProductName').value = b.product_name;
+        document.getElementById('editPlannedQty').value = b.planned_qty;
+        document.getElementById('editProducedQty').value = b.produced_qty;
+        document.getElementById('editRejectedQty').value = b.rejected_qty;
+        document.getElementById('editStartDate').value = b.start_date;
+        document.getElementById('editEndDate').value = b.end_date;
+        document.getElementById('editSupervisor').value = b.supervisor_id;
+        document.getElementById('editStatus').value = b.status;
+      };
+
+      const readBatchForm = (prefix) => {
+        const orderId = document.getElementById(`${prefix}ProductionOrder`).value;
+        const plannedQty = parseInt(document.getElementById(`${prefix}PlannedQty`).value,10);
+        const producedQty = parseInt(document.getElementById(`${prefix}ProducedQty`).value,10);
+        const rejectedQty = parseInt(document.getElementById(`${prefix}RejectedQty`).value,10);
+        const startDate = document.getElementById(`${prefix}StartDate`).value;
+        const endDate = document.getElementById(`${prefix}EndDate`).value;
+        const supervisorId = document.getElementById(`${prefix}Supervisor`).value;
+        const status = document.getElementById(`${prefix}Status`).value;
+
+        if (!orderId || Number.isNaN(plannedQty) || plannedQty < 1) return null;
+        if (Number.isNaN(producedQty) || producedQty < 0) return null;
+        if (Number.isNaN(rejectedQty) || rejectedQty < 0) return null;
+        if (!startDate || !endDate || endDate < startDate) return null;
+        if (!supervisorId || !status) return null;
+
+        const order = getOrder(orderId);
+        const supervisor = getSupervisor(supervisorId);
+        if (!order || !supervisor) return null;
+
+        return {
+          production_order_id: order.production_order_id,
+          production_order_no: order.order_no,
+          product_name: order.product_name,
+          planned_qty: plannedQty,
+          produced_qty: producedQty,
+          rejected_qty: rejectedQty,
+          start_date: startDate,
+          end_date: endDate,
+          supervisor_id: supervisor.supervisor_id,
+          supervisor_name: supervisor.supervisor_name,
+          status
+        };
+      };
+
+      populateSelects();
+
+      document.getElementById('createBatchModal').addEventListener('show.bs.modal', () => {
+        document.getElementById('createBatchForm').reset();
+        document.getElementById('addBatchNo').value = generateBatchNo();
+        document.getElementById('addStartDate').value = todayStr;
+        document.getElementById('addEndDate').value = todayStr;
+        document.getElementById('addProducedQty').value = 0;
+        document.getElementById('addRejectedQty').value = 0;
+        document.getElementById('addStatus').value = 'planned';
+        const defaultOrder = document.getElementById('addProductionOrder').value;
+        syncProductFromOrder('add');
+        if (document.getElementById('addSupervisor') && defaultOrder) {
+          // keep selected supervisor as user-selected or first option
+        }
+      });
+
+      document.getElementById('addProductionOrder').addEventListener('change', () => syncProductFromOrder('add'));
+      document.getElementById('editProductionOrder').addEventListener('change', () => syncProductFromOrder('edit'));
+
+      $('#btnRefresh').on('click', () => refreshTable());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('createBatchForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const batchNo = document.getElementById('addBatchNo').value;
+        const data = readBatchForm('add');
+        if (!data) return;
+
+        const nextIdNum = batches.length
+          ? Math.max(...batches.map(x => parseInt(String(x.production_batch_id).replace(/[^0-9]/g,''),10)) || 0) + 1
+          : 1;
+
+        batches.push({
+          production_batch_id: `BATCH-${String(nextIdNum).padStart(4,'0')}`,
+          batch_no: batchNo,
+          ...data
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('createBatchModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('editBatchForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('editBatchIdHidden').value;
+        const existing = getBatch(id);
+        if (!existing) return;
+
+        const data = readBatchForm('edit');
+        if (!data) return;
+
+        Object.assign(existing, data);
+        bootstrap.Modal.getInstance(document.getElementById('editBatchModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('deleteBatchForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('deleteBatchIdHidden').value;
+        batches = batches.filter(b => b.production_batch_id !== id);
+        if (selectedBatchId === id) selectedBatchId = null;
+        bootstrap.Modal.getInstance(document.getElementById('deleteBatchModal'))?.hide();
+        refreshTable();
+      });
+
+      $tableEl.on('click', 'tr[data-batch-id]', function(ev){
+        if ($(ev.target).closest('.dropdown, .action-btn, a').length) return;
+        const id = this.getAttribute('data-batch-id');
+        const b = getBatch(id);
+        if (!b) return;
+        selectedBatchId = id;
+        $tbody.find('tr').removeClass('order-row-active');
+        $(this).addClass('order-row-active');
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const b = getBatch(id);
+        if (!b) return;
+
+        selectedBatchId = id;
+
+        if (action === 'view'){
+          fillViewModal(b);
+          new bootstrap.Modal(document.getElementById('viewBatchModal')).show();
+          return;
+        }
+
+        if (action === 'edit'){
+          fillEditModal(b);
+          new bootstrap.Modal(document.getElementById('editBatchModal')).show();
+          return;
+        }
+
+        if (action === 'delete'){
+          document.getElementById('deleteBatchIdHidden').value = b.production_batch_id;
+          document.getElementById('deleteBatchTitle').textContent = `Delete ${b.batch_no}?`;
+          document.getElementById('deleteBatchMessage').textContent = `${b.product_name}. This action cannot be undone.`;
+          new bootstrap.Modal(document.getElementById('deleteBatchModal')).show();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // Initialize default product display
+        syncProductFromOrder('add');
+        refreshTable();
+      });
+
+    })();
+  </script>
+
+</body>
+</html>
+

@@ -1,0 +1,1775 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finished Goods Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-draft{ background:rgba(108,117,125,.12); color:#495057; border-color:rgba(108,117,125,.25); }
+    .badge-completed{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-transferred{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-cancelled{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    .chart-card{
+      border-radius:1rem;
+      border:1px solid rgba(11,42,74,.10);
+      background:rgba(255,255,255,.92);
+      box-shadow:0 10px 24px rgba(11,42,74,.05);
+      overflow:hidden;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card,
+    [data-bs-theme="dark"] .chart-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge{ color:rgba(255,255,255,.92); }
+
+    .chart-title{
+      font-weight:900;
+      color:var(--erp-primary);
+      display:flex;
+      align-items:center;
+      gap:.55rem;
+    }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-boxes-stacked text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Finished Goods Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Production • Acceptance • Warehouse Stock</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="production_orders.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-industry"></i><p>Production</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="recipes_bom.html" class="nav-link"><i class="fa-solid fa-flask me-2"></i><p>Recipes / BOM</p></a></li>
+                  <li class="nav-item"><a href="production_orders.html" class="nav-link active"><i class="fa-solid fa-clipboard-list me-2"></i><p>Production Orders</p></a></li>
+                  <li class="nav-item"><a href="production_batches.html" class="nav-link"><i class="fa-solid fa-layer-group me-2"></i><p>Production Batches</p></a></li>
+                  <li class="nav-item"><a href="production_consumption.html" class="nav-link"><i class="fa-solid fa-truck-arrow-right me-2"></i><p>Consumption</p></a></li>
+                  <li class="nav-item"><a href="finished_goods.html" class="nav-link active"><i class="fa-solid fa-boxes-stacked me-2"></i><p>Finished Goods</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Finished Goods Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="production_orders.html">Production</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Finished Goods</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Manage all finished products produced by the factory and transferred into warehouse stock.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#addFinishedGoodsModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Finished Goods
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Finished Goods</div>
+                      <div class="kpi-value" id="kpiTotalFinishedGoods">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-boxes-stacked" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Production Output Today</div>
+                      <div class="kpi-value" id="kpiProductionOutputToday">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-truck-fast" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Accepted Quantity</div>
+                      <div class="kpi-value" id="kpiTotalAcceptedQty">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-circle-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(220,53,69,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Rejected Quantity</div>
+                      <div class="kpi-value" id="kpiTotalRejectedQty">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(220,53,69,.10);border:1px solid rgba(220,53,69,.20);">
+                      <i class="fa-solid fa-circle-xmark" style="color:var(--erp-danger);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(13,110,253,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Finished Goods Value</div>
+                      <div class="kpi-value" id="kpiFinishedGoodsValue">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-sack-dollar" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card h-100">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(13,110,253,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Available Finished Stock</div>
+                      <div class="kpi-value" id="kpiAvailableFinishedStock">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-warehouse" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="card erp-card mt-2">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-chart-line text-primary"></i>
+                    <span>Finished Goods Summary & Charts</span>
+                  </div>
+                  <div class="text-muted small fw-semibold">
+                    <i class="fa-solid fa-sparkles me-1"></i>Daily • Efficiency • Stock Value
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-3">
+                      <div class="erp-card h-100" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                        <div class="p-4 text-center">
+                          <div class="text-muted small fw-semibold mb-1"><i class="fa-solid fa-bolt me-1"></i>Total Production Output</div>
+                          <div class="summary-value" id="summaryTotalOutput">—</div>
+                          <div class="text-muted small mt-1">From demo records</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-3">
+                      <div class="erp-card h-100" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                        <div class="p-4 text-center">
+                          <div class="text-muted small fw-semibold mb-1"><i class="fa-solid fa-circle-check me-1"></i>Total Accepted Goods</div>
+                          <div class="summary-value" id="summaryAcceptedGoods">—</div>
+                          <div class="text-muted small mt-1">Approved & completed</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-3">
+                      <div class="erp-card h-100" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                        <div class="p-4 text-center">
+                          <div class="text-muted small fw-semibold mb-1"><i class="fa-solid fa-circle-xmark me-1"></i>Total Rejected Goods</div>
+                          <div class="summary-value" id="summaryRejectedGoods">—</div>
+                          <div class="text-muted small mt-1">Scrapped/Rejected</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-3">
+                      <div class="erp-card h-100" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                        <div class="p-4 text-center">
+                          <div class="text-muted small fw-semibold mb-1"><i class="fa-solid fa-gauge-high me-1"></i>Production Efficiency %</div>
+                          <div class="summary-value" id="summaryEfficiency">—</div>
+                          <div class="text-muted small mt-1">Accepted / Produced</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                          <div class="chart-card p-3">
+                            <div class="chart-title mb-2"><i class="fa-solid fa-chart-simple text-primary"></i>Daily Production Output</div>
+                            <div style="position:relative; height:260px;">
+                              <canvas id="chartDailyOutput"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                          <div class="chart-card p-3">
+                            <div class="chart-title mb-2"><i class="fa-solid fa-diagram-predecessor text-primary"></i>Accepted vs Rejected Products</div>
+                            <div style="position:relative; height:260px;">
+                              <canvas id="chartAcceptedRejected"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                          <div class="chart-card p-3">
+                            <div class="chart-title mb-2"><i class="fa-solid fa-diagram-project text-primary"></i>Finished Goods by Product</div>
+                            <div style="position:relative; height:260px;">
+                              <canvas id="chartFinishedByProduct"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                          <div class="chart-card p-3">
+                            <div class="chart-title mb-2"><i class="fa-solid fa-chart-column text-primary"></i>Monthly Production Trend</div>
+                            <div style="position:relative; height:260px;">
+                              <canvas id="chartMonthlyTrend"></canvas>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row g-3 mt-1">
+                        <div class="col-12 col-lg-12">
+                          <div class="erp-card h-100" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                            <div class="p-4 text-center">
+                              <div class="text-muted small fw-semibold mb-1"><i class="fa-solid fa-sack-dollar me-1"></i>Total Finished Goods Value</div>
+                              <div class="summary-value" id="summaryTotalValue">—</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-top:1rem; margin-bottom:0;">
+                        <i class="fa-solid fa-shield-halved me-2"></i>UI-only demo: charts and KPIs are computed from in-memory dataset.
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-clipboard-list text-primary"></i>
+                <span>Finished Goods DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="finishedGoodsTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:140px;">FG Number</th>
+                      <th style="width:140px;">Batch Number</th>
+                      <th style="width:170px;">Production Order</th>
+                      <th>Product Name</th>
+                      <th style="width:160px;">Warehouse</th>
+                      <th style="width:150px;">Produced Quantity</th>
+                      <th style="width:150px;">Accepted Quantity</th>
+                      <th style="width:150px;">Rejected Quantity</th>
+                      <th style="width:110px;">Unit</th>
+                      <th style="width:130px;">Unit Cost</th>
+                      <th style="width:150px;">Total Value</th>
+                      <th style="width:140px;">Production Date</th>
+                      <th style="width:130px;">Status</th>
+                      <th style="width:220px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Finished Goods Modal -->
+  <div class="modal fade" id="addFinishedGoodsModal" tabindex="-1" aria-hidden="true" aria-labelledby="addFinishedGoodsModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addFinishedGoodsModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Finished Goods</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addFinishedGoodsForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control text-uppercase" id="addFgNumber" placeholder="FG Number" readonly />
+                  <label for="addFgNumber"><i class="fa-solid fa-hashtag me-2"></i>FG Number (Auto)</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addProductionOrder" name="production_order_id" required></select>
+                  <label for="addProductionOrder"><i class="fa-solid fa-clipboard-list me-2"></i>Production Order</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addBatchNumber" name="batch_id" required></select>
+                  <label for="addBatchNumber"><i class="fa-solid fa-layer-group me-2"></i>Batch Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addProduct" readonly placeholder="Product" />
+                  <label for="addProduct"><i class="fa-solid fa-cookie-bite me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addWarehouse" name="warehouse_id" required></select>
+                  <label for="addWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addProducedQty" name="produced_qty" placeholder="Produced Quantity" min="0" step="1" required value="0" />
+                  <label for="addProducedQty"><i class="fa-solid fa-boxes-stacked me-2"></i>Produced Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addAcceptedQty" name="accepted_qty" placeholder="Accepted Quantity" min="0" step="1" required value="0" />
+                  <label for="addAcceptedQty"><i class="fa-solid fa-circle-check me-2"></i>Accepted Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addRejectedQty" name="rejected_qty" placeholder="Rejected Quantity" min="0" step="1" required value="0" />
+                  <label for="addRejectedQty"><i class="fa-solid fa-circle-xmark me-2"></i>Rejected Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addUnit" readonly placeholder="Unit" />
+                  <label for="addUnit"><i class="fa-solid fa-ruler-horizontal me-2"></i>Unit</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addUnitCost" name="unit_cost" placeholder="Unit Cost" min="0" step="0.01" required value="0" />
+                  <label for="addUnitCost"><i class="fa-solid fa-coins me-2"></i>Unit Cost</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addTotalValue" name="total_value" placeholder="Total Value" readonly value="0" />
+                  <label for="addTotalValue"><i class="fa-solid fa-calculator me-2"></i>Total Value (Auto)</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addProductionDate" name="production_date" required />
+                  <label for="addProductionDate"><i class="fa-regular fa-calendar me-2"></i>Production Date</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="addNotes" name="notes" placeholder="Notes" style="height:90px;"></textarea>
+                  <label for="addNotes"><i class="fa-solid fa-align-left me-2"></i>Notes</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addStatus" name="status" required>
+                    <option value="draft" selected>Draft</option>
+                    <option value="completed">Completed</option>
+                    <option value="transferred">Transferred</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <label for="addStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: finished goods are kept in-memory.
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Finished Goods</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Finished Goods Modal -->
+  <div class="modal fade" id="editFinishedGoodsModal" tabindex="-1" aria-hidden="true" aria-labelledby="editFinishedGoodsModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editFinishedGoodsModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Finished Goods</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editFinishedGoodsForm" autocomplete="off">
+          <input type="hidden" id="editFinishedGoodIdHidden" />
+
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control text-uppercase" id="editFgNumber" placeholder="FG Number" readonly />
+                  <label for="editFgNumber"><i class="fa-solid fa-hashtag me-2"></i>FG Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editProductionOrder" name="production_order_id" required></select>
+                  <label for="editProductionOrder"><i class="fa-solid fa-clipboard-list me-2"></i>Production Order</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editBatchNumber" name="batch_id" required></select>
+                  <label for="editBatchNumber"><i class="fa-solid fa-layer-group me-2"></i>Batch Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editProduct" readonly placeholder="Product" />
+                  <label for="editProduct"><i class="fa-solid fa-cookie-bite me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editWarehouse" name="warehouse_id" required></select>
+                  <label for="editWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editProducedQty" name="produced_qty" placeholder="Produced Quantity" min="0" step="1" required />
+                  <label for="editProducedQty"><i class="fa-solid fa-boxes-stacked me-2"></i>Produced Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editAcceptedQty" name="accepted_qty" placeholder="Accepted Quantity" min="0" step="1" required />
+                  <label for="editAcceptedQty"><i class="fa-solid fa-circle-check me-2"></i>Accepted Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editRejectedQty" name="rejected_qty" placeholder="Rejected Quantity" min="0" step="1" required />
+                  <label for="editRejectedQty"><i class="fa-solid fa-circle-xmark me-2"></i>Rejected Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editUnit" readonly placeholder="Unit" />
+                  <label for="editUnit"><i class="fa-solid fa-ruler-horizontal me-2"></i>Unit</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editUnitCost" name="unit_cost" placeholder="Unit Cost" min="0" step="0.01" required />
+                  <label for="editUnitCost"><i class="fa-solid fa-coins me-2"></i>Unit Cost</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editTotalValue" name="total_value" placeholder="Total Value" readonly />
+                  <label for="editTotalValue"><i class="fa-solid fa-calculator me-2"></i>Total Value (Auto)</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="editProductionDate" name="production_date" required />
+                  <label for="editProductionDate"><i class="fa-regular fa-calendar me-2"></i>Production Date</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="editNotes" name="notes" placeholder="Notes" style="height:90px;"></textarea>
+                  <label for="editNotes"><i class="fa-solid fa-align-left me-2"></i>Notes</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editStatus" name="status" required>
+                    <option value="draft">Draft</option>
+                    <option value="completed">Completed</option>
+                    <option value="transferred">Transferred</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <label for="editStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Finished Goods</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- View Finished Goods Details Modal -->
+  <div class="modal fade" id="viewFinishedGoodsModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewFinishedGoodsModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewFinishedGoodsModalLabel"><i class="fa-solid fa-eye me-2"></i>View Finished Goods Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-boxes-stacked" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewFgNumber">—</div>
+                      <div class="text-muted small" id="viewProductName">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                      <div id="viewStatusContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-warehouse me-2"></i>Warehouse</div>
+                      <div class="fw-semibold" id="viewWarehouse">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-hashtag me-2"></i>Production Date</div>
+                      <div class="fw-semibold" id="viewProductionDate">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-calculator me-2"></i>Total Value</div>
+                        <div class="fw-bold" id="viewTotalValue">—</div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small fw-semibold"><i class="fa-solid fa-list-check me-2"></i>Efficiency</div>
+                        <div class="fw-bold" id="viewEfficiency">—</div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-clipboard-list me-2 text-primary"></i>Finished Goods Details</div>
+
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">FG Number</div>
+                      <div class="fw-bold" id="viewFgNumber2">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Batch Number</div>
+                      <div class="fw-bold" id="viewBatchNumber">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Production Order</div>
+                      <div class="fw-bold" id="viewProductionOrder">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Unit</div>
+                      <div class="fw-bold" id="viewUnit">—</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Produced Quantity</div>
+                      <div class="fw-bold" id="viewProducedQty">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Accepted Quantity</div>
+                      <div class="fw-bold" id="viewAcceptedQty">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Rejected Quantity</div>
+                      <div class="fw-bold" id="viewRejectedQty">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Unit Cost</div>
+                      <div class="fw-bold" id="viewUnitCost">—</div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="text-muted small fw-semibold">Notes</div>
+                      <div class="fw-semibold" id="viewNotes">—</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer To Warehouse Modal -->
+  <div class="modal fade" id="transferFinishedGoodsModal" tabindex="-1" aria-hidden="true" aria-labelledby="transferFinishedGoodsModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="transferFinishedGoodsModalLabel"><i class="fa-solid fa-right-left me-2"></i>Transfer To Warehouse</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="transferFinishedGoodsForm" autocomplete="off">
+          <input type="hidden" id="transferFinishedGoodIdHidden" />
+
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="alert" style="background:rgba(13,110,253,.05); border:1px solid rgba(13,110,253,.18); color:var(--erp-info); margin-bottom:0;">
+                  <i class="fa-solid fa-arrows-right-to-line me-2"></i>Demo transfer: updates status and refreshes KPIs/stock.
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="transferFgNumber" readonly />
+                  <label for="transferFgNumber"><i class="fa-solid fa-hashtag me-2"></i>FG Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="transferWarehouse" required>
+                    <option value="">Select Warehouse</option>
+                  </select>
+                  <label for="transferWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Target Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="transferQty" readonly />
+                  <label for="transferQty"><i class="fa-solid fa-boxes-stacked me-2"></i>Transfer Quantity (Accepted)</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="transferTotalValue" readonly />
+                  <label for="transferTotalValue"><i class="fa-solid fa-calculator me-2"></i>Transfer Value</label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-right-left me-2"></i>Transfer</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteFinishedGoodsModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteFinishedGoodsModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteFinishedGoodsModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Confirmation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteFinishedGoodsForm">
+          <input type="hidden" id="deleteFinishedGoodIdHidden" />
+
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteFinishedGoodsTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteFinishedGoodsMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    (function(){
+      const todayStr = new Date().toISOString().slice(0,10);
+      const currentYear = new Date().getFullYear();
+
+      const PRODUCTION_ORDERS = [
+        { production_order_id:'PROID-0001', order_no:'PRO-2026-0088', product_id:'PRD-0006', product_name:'Chocolate Biscuit', unit:'PCS' },
+        { production_order_id:'PROID-0002', order_no:'PRO-2026-0091', product_id:'PRD-0006', product_name:'Chocolate Biscuit', unit:'PCS' },
+        { production_order_id:'PROID-0004', order_no:'PRO-2026-0098', product_id:'PRD-0007', product_name:'Milk Biscuit', unit:'PCS' },
+        { production_order_id:'PROID-0006', order_no:'PRO-2026-0105', product_id:'PRD-0007', product_name:'Milk Biscuit', unit:'PCS' },
+        { production_order_id:'PROID-0008', order_no:'PRO-2026-0090', product_id:'PRD-0008', product_name:'Coconut Biscuit', unit:'PCS' }
+      ];
+
+      const PRODUCTION_BATCHES = [
+        { production_batch_id:'BATCH-0001', batch_no:'BCH-2026-0001', production_order_id:'PROID-0001' },
+        { production_batch_id:'BATCH-0002', batch_no:'BCH-2026-0002', production_order_id:'PROID-0002' },
+        { production_batch_id:'BATCH-0003', batch_no:'BCH-2026-0003', production_order_id:'PROID-0004' },
+        { production_batch_id:'BATCH-0005', batch_no:'BCH-2026-0005', production_order_id:'PROID-0006' },
+        { production_batch_id:'BATCH-0008', batch_no:'BCH-2026-0008', production_order_id:'PROID-0008' }
+      ];
+
+      const WAREHOUSES = [
+        { warehouse_id:'WH-0001', warehouse_name:'Main Warehouse' },
+        { warehouse_id:'WH-0002', warehouse_name:'Finished Goods Store' }
+      ];
+
+      let finishedGoods = [
+        { finished_good_id:'FGID-0001', fg_number:'FG-2026-0001', production_order_id:'PROID-0001', batch_id:'BATCH-0001', product_id:'PRD-0006', warehouse_id:'WH-0002', produced_qty:1000, accepted_qty:985, rejected_qty:15, unit_cost:45.00, total_value:985*45.00, production_date:todayStr, notes:'Accepted lot after QC pass.', status:'completed', created_at:todayStr },
+        { finished_good_id:'FGID-0002', fg_number:'FG-2026-0002', production_order_id:'PROID-0002', batch_id:'BATCH-0002', product_id:'PRD-0006', warehouse_id:'WH-0001', produced_qty:500, accepted_qty:470, rejected_qty:30, unit_cost:44.50, total_value:470*44.50, production_date:todayStr, notes:'Rejected due to packaging damage.', status:'transferred', created_at:todayStr },
+        { finished_good_id:'FGID-0003', fg_number:'FG-2026-0003', production_order_id:'PROID-0004', batch_id:'BATCH-0003', product_id:'PRD-0007', warehouse_id:'WH-0002', produced_qty:1200, accepted_qty:1160, rejected_qty:40, unit_cost:40.00, total_value:1160*40.00, production_date:'2026-06-18', notes:'Efficiency stable for this run.', status:'completed', created_at:'2026-06-17' },
+        { finished_good_id:'FGID-0004', fg_number:'FG-2026-0004', production_order_id:'PROID-0006', batch_id:'BATCH-0005', product_id:'PRD-0007', warehouse_id:'WH-0001', produced_qty:1500, accepted_qty:1400, rejected_qty:100, unit_cost:41.25, total_value:1400*41.25, production_date:'2026-06-19', notes:'Adjusted coating temperature.', status:'draft', created_at:'2026-06-19' },
+        { finished_good_id:'FGID-0005', fg_number:'FG-2026-0005', production_order_id:'PROID-0008', batch_id:'BATCH-0008', product_id:'PRD-0008', warehouse_id:'WH-0002', produced_qty:800, accepted_qty:790, rejected_qty:10, unit_cost:48.00, total_value:790*48.00, production_date:'2026-06-20', notes:'Minor rejects from labeling mismatch.', status:'cancelled', created_at:'2026-06-20' }
+      ];
+
+      const $tableEl = $('#finishedGoodsTable');
+      const $tbody = $tableEl.find('tbody');
+      let dt;
+
+      let selectedFinishedGoodId = null;
+
+      let charts = { daily:null, acc:null, byProd:null, monthly:null };
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'
+      })[c]);
+
+      const statusBadge = (status) => {
+        const s = String(status || '').toLowerCase();
+        const map = {
+          draft: '<span class="badge status-badge badge-draft">Draft</span>',
+          completed: '<span class="badge status-badge badge-completed">Completed</span>',
+          transferred: '<span class="badge status-badge badge-transferred">Transferred</span>',
+          cancelled: '<span class="badge status-badge badge-cancelled">Cancelled</span>'
+        };
+        return map[s] || map.draft;
+      };
+
+      const getOrder = (id) => PRODUCTION_ORDERS.find(o => o.production_order_id === id);
+      const getBatch = (id) => PRODUCTION_BATCHES.find(b => b.production_batch_id === id);
+      const getWarehouse = (id) => WAREHOUSES.find(w => w.warehouse_id === id);
+      const getProductName = (productId, orderId) => {
+        const o = getOrder(orderId);
+        if (o) return o.product_name;
+        return productId || '—';
+      };
+
+      const formatMoney = (value) => {
+        const n = Number(value) || 0;
+        return 'PKR ' + n.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      const enrich = (fg) => {
+        const order = getOrder(fg.production_order_id);
+        const batch = getBatch(fg.batch_id);
+        const wh = getWarehouse(fg.warehouse_id);
+        return {
+          ...fg,
+          fg_number: fg.fg_number,
+          batch_no: batch ? batch.batch_no : '—',
+          order_no: order ? order.order_no : '—',
+          product_name: order ? order.product_name : getProductName(fg.product_id, fg.production_order_id),
+          unit: order ? order.unit : (fg.unit || '—'),
+          warehouse_name: wh ? wh.warehouse_name : '—'
+        };
+      };
+
+      const computeKPIs = () => {
+        const totalFinished = finishedGoods.length;
+
+        const todayRows = finishedGoods.filter(f => f.production_date === todayStr);
+        const totalOutputToday = todayRows.reduce((sum, f) => sum + (Number(f.produced_qty) || 0), 0);
+
+        const totalAccepted = finishedGoods.reduce((sum, f) => sum + (Number(f.accepted_qty) || 0), 0);
+        const totalRejected = finishedGoods.reduce((sum, f) => sum + (Number(f.rejected_qty) || 0), 0);
+
+        const totalValue = finishedGoods.reduce((sum, f) => sum + (Number(f.total_value) || 0), 0);
+
+        // Available stock: sum accepted_qty where status is transferred (demo assumption)
+        const availableStock = finishedGoods
+          .filter(f => String(f.status).toLowerCase() === 'transferred')
+          .reduce((sum, f) => sum + (Number(f.accepted_qty) || 0), 0);
+
+        const totalProduced = finishedGoods.reduce((sum, f) => sum + (Number(f.produced_qty) || 0), 0);
+        const efficiency = totalProduced > 0 ? (totalAccepted / totalProduced) * 100 : 0;
+
+        return {
+          totalFinished,
+          totalOutputToday,
+          totalAccepted,
+          totalRejected,
+          totalValue,
+          availableStock,
+          efficiency,
+          totalProduced
+        };
+      };
+
+      const renderKPIs = () => {
+        const k = computeKPIs();
+        $('#kpiTotalFinishedGoods').text(k.totalFinished);
+        $('#kpiProductionOutputToday').text(k.totalOutputToday.toLocaleString('en-PK'));
+        $('#kpiTotalAcceptedQty').text(k.totalAccepted.toLocaleString('en-PK'));
+        $('#kpiTotalRejectedQty').text(k.totalRejected.toLocaleString('en-PK'));
+        $('#kpiFinishedGoodsValue').text(formatMoney(k.totalValue));
+        $('#kpiAvailableFinishedStock').text(k.availableStock.toLocaleString('en-PK'));
+
+        $('#summaryTotalOutput').text(k.totalProduced.toLocaleString('en-PK'));
+        $('#summaryAcceptedGoods').text(k.totalAccepted.toLocaleString('en-PK'));
+        $('#summaryRejectedGoods').text(k.totalRejected.toLocaleString('en-PK'));
+        $('#summaryEfficiency').text(k.efficiency.toFixed(1) + '%');
+        $('#summaryTotalValue').text(formatMoney(k.totalValue));
+      };
+
+      // NOTE: Keep charts logic below inside IIFE.
+
+      const renderRows = () => {
+        $tbody.empty();
+
+        for (const fg of finishedGoods){
+          const e = enrich(fg);
+          const activeCls = selectedFinishedGoodId === fg.finished_good_id ? 'order-row-active' : '';
+
+          const row = `
+            <tr class="${activeCls}" data-fg-id="${escapeHtml(fg.finished_good_id)}">
+              <td class="fw-bold">${escapeHtml(e.fg_number)}</td>
+              <td>${escapeHtml(e.batch_no)}</td>
+              <td>${escapeHtml(e.order_no)}<span class="d-none d-md-inline"> • ${escapeHtml(e.product_name)}</span></td>
+              <td>${escapeHtml(e.product_name)}</td>
+              <td>${escapeHtml(e.warehouse_name)}</td>
+              <td>${escapeHtml(Number(e.produced_qty || 0).toLocaleString('en-PK'))}</td>
+              <td class="fw-semibold">${escapeHtml(Number(e.accepted_qty || 0).toLocaleString('en-PK'))}</td>
+              <td>${escapeHtml(Number(e.rejected_qty || 0).toLocaleString('en-PK'))}</td>
+              <td>${escapeHtml(e.unit || '—')}</td>
+              <td>${escapeHtml(formatMoney(e.unit_cost))}</td>
+              <td>${escapeHtml(formatMoney(e.total_value))}</td>
+              <td>${escapeHtml(e.production_date)}</td>
+              <td>${statusBadge(e.status)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(fg.finished_good_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(fg.finished_good_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item" href="#" data-action="transfer" data-id="${escapeHtml(fg.finished_good_id)}"><i class="fa-solid fa-right-left me-2"></i>Transfer To Warehouse</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(fg.finished_good_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+
+          $tbody.append(row);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 8,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[11,'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0,1,2,3,4] },
+          { responsivePriority: 2, targets: [5,6,7,9,10,11] },
+          { responsivePriority: 3, targets: [8,12] },
+          { orderable: false, targets: -1 },
+          { targets: [13], orderable:false }
+        ],
+        buttons: [
+          { extend: 'colvis', className: 'btn-sm btn', text: '<i class="fa-solid fa-columns me-1"></i>Columns' },
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const getFinishedGood = (id) => finishedGoods.find(x => x.finished_good_id === id);
+
+      const generateFgNumber = () => {
+        const nums = finishedGoods.map(x => parseInt(String(x.fg_number).replace(/[^0-9]/g,''),10)).filter(n => !Number.isNaN(n));
+        const next = nums.length ? Math.max(...nums) + 1 : 1;
+        return `FG-${currentYear}-${String(next).padStart(4,'0')}`;
+      };
+
+      const populateStaticSelects = () => {
+        const orderOpts = PRODUCTION_ORDERS.map(o =>
+          `<option value="${escapeHtml(o.production_order_id)}">${escapeHtml(o.order_no)} — ${escapeHtml(o.product_name)}</option>`
+        ).join('');
+
+        const batchOpts = (orderId) => PRODUCTION_BATCHES
+          .filter(b => b.production_order_id === orderId)
+          .map(b => `<option value="${escapeHtml(b.production_batch_id)}">${escapeHtml(b.batch_no)}</option>`)
+          .join('');
+
+        const warehouseOpts = WAREHOUSES.map(w =>
+          `<option value="${escapeHtml(w.warehouse_id)}">${escapeHtml(w.warehouse_name)}</option>`
+        ).join('');
+
+        ['addProductionOrder','editProductionOrder'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = orderOpts;
+        });
+
+        ['addWarehouse','editWarehouse','transferWarehouse'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = warehouseOpts;
+        });
+
+        // Set batch list on add/edit modal open
+        const defaultOrder = PRODUCTION_ORDERS[0]?.production_order_id || '';
+        const addBatchSel = document.getElementById('addBatchNumber');
+        if (addBatchSel) addBatchSel.innerHTML = batchOpts(defaultOrder);
+        const editBatchSel = document.getElementById('editBatchNumber');
+        if (editBatchSel) editBatchSel.innerHTML = batchOpts(defaultOrder);
+
+        const syncProductAndUnitFromOrder = (prefix) => {
+          const orderId = document.getElementById(`${prefix}ProductionOrder`)?.value;
+          const order = getOrder(orderId);
+          if (!order) return;
+          const productEl = document.getElementById(`${prefix}Product`);
+          if (productEl) productEl.value = order.product_name;
+          const unitEl = document.getElementById(`${prefix}Unit`);
+          if (unitEl) unitEl.value = order.unit;
+
+          const batchSel = document.getElementById(`${prefix}BatchNumber`);
+          if (batchSel) batchSel.innerHTML = batchOpts(orderId);
+        };
+
+        document.getElementById('addProductionOrder').addEventListener('change', () => syncProductAndUnitFromOrder('add'));
+        document.getElementById('editProductionOrder').addEventListener('change', () => syncProductAndUnitFromOrder('edit'));
+
+        // Calculate total value
+        const calcTotalValue = (prefix) => {
+          const produced = Number(document.getElementById(`${prefix}ProducedQty`)?.value || 0);
+          const accepted = Number(document.getElementById(`${prefix}AcceptedQty`)?.value || 0);
+          const unitCost = Number(document.getElementById(`${prefix}UnitCost`)?.value || 0);
+          // Using accepted qty for total value
+          const qtyForValue = accepted;
+          const total = qtyForValue * unitCost;
+          const totalEl = document.getElementById(`${prefix}TotalValue`);
+          if (totalEl) totalEl.value = Number.isFinite(total) ? total.toFixed(2) : '0.00';
+        };
+
+        ['add','edit'].forEach(prefix => {
+          ['ProducedQty','AcceptedQty','RejectedQty','UnitCost'].forEach(f => {
+            const el = document.getElementById(`${prefix}${f}`);
+            if (el) el.addEventListener('input', () => calcTotalValue(prefix));
+          });
+        });
+
+        // init add modal defaults
+        if (document.getElementById('addProductionOrder')?.value) {
+          syncProductAndUnitFromOrder('add');
+        }
+      };
+
+      const resetAddModalDefaults = () => {
+        const form = document.getElementById('addFinishedGoodsForm');
+        if (form) form.reset();
+        document.getElementById('addFgNumber').value = generateFgNumber();
+        document.getElementById('addProductionDate').value = todayStr;
+        document.getElementById('addProducedQty').value = 0;
+        document.getElementById('addAcceptedQty').value = 0;
+        document.getElementById('addRejectedQty').value = 0;
+        document.getElementById('addUnitCost').value = 0;
+        document.getElementById('addTotalValue').value = '0.00';
+        document.getElementById('addStatus').value = 'draft';
+
+        // default product/unit and batch
+        const orderId = document.getElementById('addProductionOrder')?.value;
+        const order = getOrder(orderId);
+        if (order){
+          document.getElementById('addProduct').value = order.product_name;
+          document.getElementById('addUnit').value = order.unit;
+          const batchSel = document.getElementById('addBatchNumber');
+          if (batchSel){
+            const batchesForOrder = PRODUCTION_BATCHES.filter(b => b.production_order_id === orderId);
+            batchSel.innerHTML = batchesForOrder.map(b => `<option value="${escapeHtml(b.production_batch_id)}">${escapeHtml(b.batch_no)}</option>`).join('');
+          }
+        }
+      };
+
+      const resetEditModalDefaults = () => {
+        // Nothing here: fillEditModal handles
+      };
+
+      const fillEditModal = (fg) => {
+        document.getElementById('editFinishedGoodIdHidden').value = fg.finished_good_id;
+        document.getElementById('editFgNumber').value = fg.fg_number;
+
+        document.getElementById('editProductionOrder').value = fg.production_order_id;
+
+        // populate batches for selected order
+        const batchSel = document.getElementById('editBatchNumber');
+        if (batchSel){
+          const batchesForOrder = PRODUCTION_BATCHES.filter(b => b.production_order_id === fg.production_order_id);
+          batchSel.innerHTML = batchesForOrder.map(b => `<option value="${escapeHtml(b.production_batch_id)}">${escapeHtml(b.batch_no)}</option>`).join('');
+        }
+
+        document.getElementById('editBatchNumber').value = fg.batch_id;
+
+        const order = getOrder(fg.production_order_id);
+        document.getElementById('editProduct').value = order ? order.product_name : '';
+        document.getElementById('editUnit').value = order ? order.unit : '';
+
+        document.getElementById('editWarehouse').value = fg.warehouse_id;
+        document.getElementById('editProducedQty').value = Number(fg.produced_qty || 0);
+        document.getElementById('editAcceptedQty').value = Number(fg.accepted_qty || 0);
+        document.getElementById('editRejectedQty').value = Number(fg.rejected_qty || 0);
+        document.getElementById('editUnitCost').value = Number(fg.unit_cost || 0);
+
+        const total = (Number(fg.accepted_qty || 0) * Number(fg.unit_cost || 0));
+        document.getElementById('editTotalValue').value = total.toFixed(2);
+
+        document.getElementById('editProductionDate').value = fg.production_date;
+        document.getElementById('editNotes').value = fg.notes || '';
+        document.getElementById('editStatus').value = fg.status;
+      };
+
+      const fillViewModal = (fg) => {
+        const order = getOrder(fg.production_order_id);
+        const batch = getBatch(fg.batch_id);
+        const wh = getWarehouse(fg.warehouse_id);
+
+        document.getElementById('viewFgNumber').textContent = fg.fg_number;
+        document.getElementById('viewFgNumber2').textContent = fg.fg_number;
+        document.getElementById('viewProductName').textContent = order ? order.product_name : fg.product_id;
+        document.getElementById('viewBatchNumber').textContent = batch ? batch.batch_no : fg.batch_id;
+        document.getElementById('viewProductionOrder').textContent = order ? `${order.order_no}` : fg.production_order_id;
+        document.getElementById('viewWarehouse').textContent = wh ? wh.warehouse_name : fg.warehouse_id;
+
+        document.getElementById('viewUnit').textContent = order ? order.unit : '—';
+        document.getElementById('viewProducedQty').textContent = `${Number(fg.produced_qty || 0).toLocaleString('en-PK')} ${order ? order.unit : ''}`.trim();
+        document.getElementById('viewAcceptedQty').textContent = `${Number(fg.accepted_qty || 0).toLocaleString('en-PK')} ${order ? order.unit : ''}`.trim();
+        document.getElementById('viewRejectedQty').textContent = `${Number(fg.rejected_qty || 0).toLocaleString('en-PK')} ${order ? order.unit : ''}`.trim();
+
+        document.getElementById('viewUnitCost').textContent = formatMoney(fg.unit_cost);
+        document.getElementById('viewTotalValue').textContent = formatMoney(fg.total_value);
+
+        document.getElementById('viewProductionDate').textContent = fg.production_date;
+        document.getElementById('viewNotes').textContent = fg.notes ? fg.notes : '—';
+
+        document.getElementById('viewStatusContainer').innerHTML = statusBadge(fg.status);
+
+        const eff = Number(fg.produced_qty || 0) > 0 ? (Number(fg.accepted_qty || 0) / Number(fg.produced_qty || 0)) * 100 : 0;
+        document.getElementById('viewEfficiency').textContent = eff.toFixed(1) + '%';
+      };
+
+      const fillTransferModal = (fg) => {
+        document.getElementById('transferFinishedGoodIdHidden').value = fg.finished_good_id;
+        document.getElementById('transferFgNumber').value = fg.fg_number;
+        document.getElementById('transferQty').value = Number(fg.accepted_qty || 0);
+        document.getElementById('transferTotalValue').value = (Number(fg.accepted_qty || 0) * Number(fg.unit_cost || 0)).toFixed(2);
+
+        const sel = document.getElementById('transferWarehouse');
+        if (sel){
+          sel.value = fg.warehouse_id;
+        }
+      };
+
+      const readAddForm = () => {
+        const production_order_id = document.getElementById('addProductionOrder').value;
+        const batch_id = document.getElementById('addBatchNumber').value;
+        const warehouse_id = document.getElementById('addWarehouse').value;
+        const produced_qty = Number(document.getElementById('addProducedQty').value);
+        const accepted_qty = Number(document.getElementById('addAcceptedQty').value);
+        const rejected_qty = Number(document.getElementById('addRejectedQty').value);
+        const unit_cost = Number(document.getElementById('addUnitCost').value);
+        const production_date = document.getElementById('addProductionDate').value;
+        const notes = document.getElementById('addNotes').value.trim();
+        const status = document.getElementById('addStatus').value;
+
+        if (!production_order_id || !batch_id || !warehouse_id) return null;
+        if (!production_date) return null;
+        if ([produced_qty, accepted_qty, rejected_qty, unit_cost].some(v => Number.isNaN(v) || v < 0)) return null;
+        if (!status) return null;
+
+        const fg_number = document.getElementById('addFgNumber').value;
+
+        const order = getOrder(production_order_id);
+        const total_value = accepted_qty * unit_cost;
+
+        return {
+          finished_good_id: null,
+          fg_number,
+          production_order_id,
+          batch_id,
+          product_id: order ? order.product_id : '—',
+          warehouse_id,
+          produced_qty,
+          accepted_qty,
+          rejected_qty,
+          unit_cost,
+          total_value,
+          production_date,
+          notes,
+          status,
+          created_at: todayStr
+        };
+      };
+
+      const readEditForm = () => {
+        const id = document.getElementById('editFinishedGoodIdHidden').value;
+        const production_order_id = document.getElementById('editProductionOrder').value;
+        const batch_id = document.getElementById('editBatchNumber').value;
+        const warehouse_id = document.getElementById('editWarehouse').value;
+        const produced_qty = Number(document.getElementById('editProducedQty').value);
+        const accepted_qty = Number(document.getElementById('editAcceptedQty').value);
+        const rejected_qty = Number(document.getElementById('editRejectedQty').value);
+        const unit_cost = Number(document.getElementById('editUnitCost').value);
+        const production_date = document.getElementById('editProductionDate').value;
+        const notes = document.getElementById('editNotes').value.trim();
+        const status = document.getElementById('editStatus').value;
+
+        if (!id || !production_order_id || !batch_id || !warehouse_id) return null;
+        if (!production_date) return null;
+        if ([produced_qty, accepted_qty, rejected_qty, unit_cost].some(v => Number.isNaN(v) || v < 0)) return null;
+        if (!status) return null;
+
+        const total_value = accepted_qty * unit_cost;
+        const order = getOrder(production_order_id);
+
+        return {
+          id,
+          production_order_id,
+          batch_id,
+          product_id: order ? order.product_id : '—',
+          warehouse_id,
+          produced_qty,
+          accepted_qty,
+          rejected_qty,
+          unit_cost,
+          total_value,
+          production_date,
+          notes,
+          status
+        };
+      };
+
+      const bindEvents = () => {
+        $('#btnRefresh').on('click', () => { refreshTable(); renderAllCharts(); });
+        $('#logoutBtn').on('click', (ev) => { ev.preventDefault(); window.location.href = '../auth/login.html'; });
+
+        document.getElementById('addFinishedGoodsModal').addEventListener('show.bs.modal', () => {
+          resetAddModalDefaults();
+        });
+
+        document.getElementById('addFinishedGoodsForm').addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          const data = readAddForm();
+          if (!data) return;
+
+          const nextNum = finishedGoods.length
+            ? Math.max(...finishedGoods.map(x => parseInt(String(x.finished_good_id).replace(/[^0-9]/g,''),10)) || 0) + 1
+            : 1;
+
+          data.finished_good_id = `FGID-${String(nextNum).padStart(4,'0')}`;
+          finishedGoods.push(data);
+
+          bootstrap.Modal.getInstance(document.getElementById('addFinishedGoodsModal'))?.hide();
+          refreshTable();
+          renderAllCharts();
+        });
+
+        document.getElementById('editFinishedGoodsForm').addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          const data = readEditForm();
+          if (!data) return;
+          const existing = getFinishedGood(data.id);
+          if (!existing) return;
+
+          Object.assign(existing, {
+            production_order_id: data.production_order_id,
+            batch_id: data.batch_id,
+            product_id: data.product_id,
+            warehouse_id: data.warehouse_id,
+            produced_qty: data.produced_qty,
+            accepted_qty: data.accepted_qty,
+            rejected_qty: data.rejected_qty,
+            unit_cost: data.unit_cost,
+            total_value: data.total_value,
+            production_date: data.production_date,
+            notes: data.notes,
+            status: data.status
+          });
+
+          bootstrap.Modal.getInstance(document.getElementById('editFinishedGoodsModal'))?.hide();
+          refreshTable();
+          renderAllCharts();
+        });
+
+        document.getElementById('transferFinishedGoodsForm').addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          const id = document.getElementById('transferFinishedGoodIdHidden').value;
+          const warehouse_id = document.getElementById('transferWarehouse').value;
+          const existing = getFinishedGood(id);
+          if (!existing || !warehouse_id) return;
+
+          existing.warehouse_id = warehouse_id;
+          existing.status = 'transferred';
+          // total value stays based on accepted qty * unit cost
+          existing.total_value = Number(existing.accepted_qty || 0) * Number(existing.unit_cost || 0);
+
+          bootstrap.Modal.getInstance(document.getElementById('transferFinishedGoodsModal'))?.hide();
+          refreshTable();
+          renderAllCharts();
+        });
+
+        document.getElementById('deleteFinishedGoodsForm').addEventListener('submit', (ev) => {
+          ev.preventDefault();
+          const id = document.getElementById('deleteFinishedGoodIdHidden').value;
+          finishedGoods = finishedGoods.filter(x => x.finished_good_id !== id);
+          if (selectedFinishedGoodId === id) selectedFinishedGoodId = null;
+          bootstrap.Modal.getInstance(document.getElementById('deleteFinishedGoodsModal'))?.hide();
+          refreshTable();
+          renderAllCharts();
+        });
+
+        $tableEl.on('click', 'tr[data-fg-id]', function(ev){
+          if ($(ev.target).closest('.dropdown, .action-btn, a').length) return;
+          const id = this.getAttribute('data-fg-id');
+          selectedFinishedGoodId = id;
+          $tbody.find('tr').removeClass('order-row-active');
+          $(this).addClass('order-row-active');
+        });
+
+        $tableEl.on('click', 'a[data-action]', (ev) => {
+          ev.preventDefault();
+          const action = ev.currentTarget.getAttribute('data-action');
+          const id = ev.currentTarget.getAttribute('data-id');
+          const fg = getFinishedGood(id);
+          if (!fg) return;
+          selectedFinishedGoodId = id;
+
+          if (action === 'view'){
+            fillViewModal(fg);
+            new bootstrap.Modal(document.getElementById('viewFinishedGoodsModal')).show();
+            return;
+          }
+
+          if (action === 'edit'){
+            fillEditModal(fg);
+            new bootstrap.Modal(document.getElementById('editFinishedGoodsModal')).show();
+            return;
+          }
+
+          if (action === 'transfer'){
+            fillTransferModal(fg);
+            new bootstrap.Modal(document.getElementById('transferFinishedGoodsModal')).show();
+            return;
+          }
+
+          if (action === 'delete'){
+            document.getElementById('deleteFinishedGoodIdHidden').value = fg.finished_good_id;
+            document.getElementById('deleteFinishedGoodsTitle').textContent = `Delete ${fg.fg_number}?`;
+            document.getElementById('deleteFinishedGoodsMessage').textContent = `${getOrder(fg.production_order_id)?.product_name || fg.product_id}. This action cannot be undone.`;
+            new bootstrap.Modal(document.getElementById('deleteFinishedGoodsModal')).show();
+            return;
+          }
+        });
+
+        document.getElementById('editFinishedGoodsModal').addEventListener('show.bs.modal', () => {
+          resetEditModalDefaults();
+        });
+      };
+
+      const renderAllCharts = () => {
+        const enriched = finishedGoods.map(enrich);
+
+        // Daily Production Output (last 7 distinct dates)
+        const lastDates = Array.from(new Set(enriched.map(f => f.production_date))).sort().slice(-7);
+        const dailyData = lastDates.map(d =>
+          enriched.filter(f => f.production_date === d).reduce((sum, f) => sum + Number(f.produced_qty || 0), 0)
+        );
+
+        const accVsRejByDate = lastDates.map(d => {
+          const rows = enriched.filter(f => f.production_date === d);
+          const accepted = rows.reduce((sum, f) => sum + Number(f.accepted_qty || 0), 0);
+          const rejected = rows.reduce((sum, f) => sum + Number(f.rejected_qty || 0), 0);
+          return { accepted, rejected };
+        });
+
+        const labelsByProduct = Array.from(new Set(enriched.map(f => f.product_name))).slice(0, 7);
+        const byProductData = labelsByProduct.map(name =>
+          enriched.filter(f => f.product_name === name).reduce((sum, f) => sum + Number(f.accepted_qty || 0), 0)
+        );
+
+        const monthKey = (dateStr) => {
+          const d = new Date(dateStr);
+          if (Number.isNaN(d.getTime())) return 'Invalid';
+          const y = d.getFullYear();
+          const m = String(d.getMonth()+1).padStart(2,'0');
+          return `${y}-${m}`;
+        };
+
+        const trendByMonth = (() => {
+          const groups = new Map();
+          for (const f of enriched) {
+            const k = monthKey(f.production_date);
+            groups.set(k, (groups.get(k) || 0) + Number(f.accepted_qty || 0));
+          }
+          // keep last 6 months
+          const keys = Array.from(groups.keys()).sort().slice(-6);
+          return {
+            labels: keys,
+            data: keys.map(k => groups.get(k) || 0)
+          };
+        })();
+
+        // Total Finished Goods Value summary (already on KPI card, keep this in sync)
+        const kpis = computeKPIs();
+        $('#summaryTotalOutput').text(kpis.totalProduced.toLocaleString('en-PK'));
+        $('#summaryAcceptedGoods').text(kpis.totalAccepted.toLocaleString('en-PK'));
+        $('#summaryRejectedGoods').text(kpis.totalRejected.toLocaleString('en-PK'));
+        $('#summaryEfficiency').text(kpis.efficiency.toFixed(1) + '%');
+        $('#summaryTotalValue').text(formatMoney(kpis.totalValue));
+
+        // Destroy old charts
+        if (charts.daily) charts.daily.destroy();
+        if (charts.acc) charts.acc.destroy();
+        if (charts.byProd) charts.byProd.destroy();
+        if (charts.monthly) charts.monthly.destroy();
+
+        const commonChartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true }
+          }
+        };
+
+        // Chart 1: Daily Production Output
+        const ctxDaily = document.getElementById('chartDailyOutput');
+        if (ctxDaily) {
+          charts.daily = new Chart(ctxDaily.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: lastDates.length ? lastDates : ['—'],
+              datasets: [{
+                label: 'Produced Qty',
+                data: dailyData.length ? dailyData : [0],
+                backgroundColor: 'rgba(11,42,74,.35)',
+                borderColor: 'rgba(11,42,74,1)',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              ...commonChartOptions,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        }
+
+        // Chart 2: Accepted vs Rejected
+        const ctxAccRej = document.getElementById('chartAcceptedRejected');
+        if (ctxAccRej) {
+          const acceptedArr = accVsRejByDate.map(x => x.accepted);
+          const rejectedArr = accVsRejByDate.map(x => x.rejected);
+          charts.acc = new Chart(ctxAccRej.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: lastDates.length ? lastDates : ['—'],
+              datasets: [
+                {
+                  label: 'Accepted Qty',
+                  data: acceptedArr.length ? acceptedArr : [0],
+                  borderColor: 'rgba(25,135,84,1)',
+                  backgroundColor: 'rgba(25,135,84,.10)',
+                  tension: 0.3,
+                  fill: true
+                },
+                {
+                  label: 'Rejected Qty',
+                  data: rejectedArr.length ? rejectedArr : [0],
+                  borderColor: 'rgba(220,53,69,1)',
+                  backgroundColor: 'rgba(220,53,69,.10)',
+                  tension: 0.3,
+                  fill: true
+                }
+              ]
+            },
+            options: {
+              ...commonChartOptions,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        }
+
+        // Chart 3: Finished Goods by Product
+        const ctxByProd = document.getElementById('chartFinishedByProduct');
+        if (ctxByProd) {
+          charts.byProd = new Chart(ctxByProd.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: labelsByProduct.length ? labelsByProduct : ['—'],
+              datasets: [{
+                data: byProductData.length ? byProductData : [0],
+                backgroundColor: [
+                  'rgba(11,42,74,.35)',
+                  'rgba(13,110,253,.35)',
+                  'rgba(25,135,84,.35)',
+                  'rgba(253,126,20,.35)',
+                  'rgba(220,53,69,.35)',
+                  'rgba(108,117,125,.35)'
+                ],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              ...commonChartOptions,
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        }
+
+        // Chart 4: Monthly Production Trend
+        const ctxMonthly = document.getElementById('chartMonthlyTrend');
+        if (ctxMonthly) {
+          charts.monthly = new Chart(ctxMonthly.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: trendByMonth.labels.length ? trendByMonth.labels : ['—'],
+              datasets: [{
+                label: 'Accepted Qty',
+                data: trendByMonth.data.length ? trendByMonth.data : [0],
+                backgroundColor: 'rgba(13,110,253,.25)',
+                borderColor: 'rgba(13,110,253,1)',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              ...commonChartOptions,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        }
+      };
+
+      const init = () => {
+        populateStaticSelects();
+        refreshTable();
+        renderAllCharts();
+        bindEvents();
+      };
+
+      init();
+
+    })();
+  </script>
+</body>
+</html>
+
+
+

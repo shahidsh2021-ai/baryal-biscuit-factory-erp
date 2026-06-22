@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Purchase Returns Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .status-badge, .reason-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-pending{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-approved{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-completed{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-rejected{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+    .badge-damaged{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+    .badge-expired{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-wrong{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-quality{ background:rgba(11,42,74,.10); color:var(--erp-primary); border-color:rgba(11,42,74,.20); }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    [data-bs-theme="dark"] .erp-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge,
+    [data-bs-theme="dark"] .reason-badge{ color:rgba(255,255,255,.92); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-rotate-left text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Purchase Returns Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Purchase • Supplier Returns • Quality Control</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="purchase_returns.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-cart-shopping"></i><p>Purchase</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="suppliers.html" class="nav-link"><i class="fa-solid fa-truck-field me-2"></i><p>Suppliers</p></a></li>
+                  <li class="nav-item"><a href="purchase_orders.html" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i><p>Purchase Orders</p></a></li>
+                  <li class="nav-item"><a href="goods_receiving.html" class="nav-link"><i class="fa-solid fa-clipboard-check me-2"></i><p>Goods Receiving</p></a></li>
+                  <li class="nav-item"><a href="purchase_returns.html" class="nav-link active"><i class="fa-solid fa-rotate-left me-2"></i><p>Purchase Returns</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Purchase Returns Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="suppliers.html">Purchase</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Purchase Returns</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Process supplier returns for damaged, expired, or incorrect purchased materials.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#createReturnModal">
+                <i class="fa-solid fa-plus me-2"></i>Create Return
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <div class="card erp-card">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-rotate-left text-primary"></i>
+                <span>Purchase Returns DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Responsive • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="returnsTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:140px;">Return Number</th>
+                      <th>Supplier</th>
+                      <th>Product</th>
+                      <th style="width:110px;">Quantity</th>
+                      <th style="width:150px;">Return Reason</th>
+                      <th style="width:130px;">Return Date</th>
+                      <th style="width:120px;">Status</th>
+                      <th style="width:210px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Create Return Modal -->
+  <div class="modal fade" id="createReturnModal" tabindex="-1" aria-hidden="true" aria-labelledby="createReturnModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="createReturnModalLabel"><i class="fa-solid fa-plus me-2"></i>Create Return</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="createReturnForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addSupplier" name="supplier_id" required></select>
+                  <label for="addSupplier"><i class="fa-solid fa-truck-field me-2"></i>Supplier</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addProduct" name="product_id" required></select>
+                  <label for="addProduct"><i class="fa-solid fa-box me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addQuantity" name="quantity" placeholder="Quantity" min="1" step="1" required />
+                  <label for="addQuantity"><i class="fa-solid fa-hashtag me-2"></i>Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addReason" name="return_reason" required></select>
+                  <label for="addReason"><i class="fa-solid fa-circle-question me-2"></i>Return Reason</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addReturnDate" name="return_date" required />
+                  <label for="addReturnDate"><i class="fa-regular fa-calendar me-2"></i>Return Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addStatus" name="status" required>
+                    <option value="pending" selected>Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <label for="addStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="addNotes" name="notes" placeholder="Notes" style="height:90px;"></textarea>
+                  <label for="addNotes"><i class="fa-solid fa-align-left me-2"></i>Notes (Optional)</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: return number is auto-generated on save.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Return</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Return Modal -->
+  <div class="modal fade" id="editReturnModal" tabindex="-1" aria-hidden="true" aria-labelledby="editReturnModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editReturnModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Return</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editReturnForm" autocomplete="off">
+          <input type="hidden" id="editReturnIdHidden" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editReturnNumber" placeholder="Return Number" readonly />
+                  <label for="editReturnNumber"><i class="fa-solid fa-hashtag me-2"></i>Return Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editSupplier" name="supplier_id" required></select>
+                  <label for="editSupplier"><i class="fa-solid fa-truck-field me-2"></i>Supplier</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editProduct" name="product_id" required></select>
+                  <label for="editProduct"><i class="fa-solid fa-box me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editQuantity" name="quantity" placeholder="Quantity" min="1" step="1" required />
+                  <label for="editQuantity"><i class="fa-solid fa-hashtag me-2"></i>Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editReason" name="return_reason" required></select>
+                  <label for="editReason"><i class="fa-solid fa-circle-question me-2"></i>Return Reason</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="editReturnDate" name="return_date" required />
+                  <label for="editReturnDate"><i class="fa-regular fa-calendar me-2"></i>Return Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editStatus" name="status" required>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <label for="editStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="editNotes" name="notes" placeholder="Notes" style="height:90px;"></textarea>
+                  <label for="editNotes"><i class="fa-solid fa-align-left me-2"></i>Notes (Optional)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Return</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Return Modal -->
+  <div class="modal fade" id="viewReturnModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewReturnModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewReturnModalLabel"><i class="fa-solid fa-eye me-2"></i>View Return</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-rotate-left" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewReturnNumber">—</div>
+                      <div class="text-muted small" id="viewReturnDate">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                      <div id="viewStatusContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-question me-2"></i>Return Reason</div>
+                      <div id="viewReasonContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-hashtag me-2"></i>Quantity</div>
+                      <div class="fw-bold" id="viewQuantity">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-box me-2 text-primary"></i>Return Details</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Supplier</div>
+                      <div class="fw-bold" id="viewSupplier">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Product</div>
+                      <div class="fw-bold" id="viewProduct">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Product Code</div>
+                      <div class="fw-bold" id="viewProductCode">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Unit</div>
+                      <div class="fw-bold" id="viewUnit">—</div>
+                    </div>
+                    <div class="col-12">
+                      <div class="text-muted small fw-semibold">Notes</div>
+                      <div class="fw-semibold" id="viewNotes">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: return record is read-only.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      const REASONS = [
+        { value:'damaged', label:'Damaged', badgeClass:'badge-damaged' },
+        { value:'expired', label:'Expired', badgeClass:'badge-expired' },
+        { value:'wrong_item', label:'Wrong Item', badgeClass:'badge-wrong' },
+        { value:'quality_issue', label:'Quality Issue', badgeClass:'badge-quality' }
+      ];
+
+      const SUPPLIERS = [
+        { supplier_id:'SUP-0001', supplier_name:'National Flour Mills' },
+        { supplier_id:'SUP-0002', supplier_name:'Premier Sugar Traders' },
+        { supplier_id:'SUP-0003', supplier_name:'Golden Palm Oils' },
+        { supplier_id:'SUP-0004', supplier_name:'Dairy Fresh Supplies' },
+        { supplier_id:'SUP-0005', supplier_name:'Cocoa Import House' },
+        { supplier_id:'SUP-0006', supplier_name:'FlexPack Solutions' },
+        { supplier_id:'SUP-0007', supplier_name:'Carton World' },
+        { supplier_id:'SUP-0008', supplier_name:'PrintLabel Co.' }
+      ];
+
+      const PRODUCTS = [
+        { product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', unit:'KG' },
+        { product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar', unit:'KG' },
+        { product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil', unit:'L' },
+        { product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder', unit:'KG' },
+        { product_id:'PRD-0005', product_code:'RM-CCO-001', product_name:'Cocoa Powder', unit:'KG' },
+        { product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper', unit:'ROLL' },
+        { product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box', unit:'CTN' },
+        { product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels', unit:'PCS' }
+      ];
+
+      let returns = [
+        { return_id:'PRET-0001', return_number:'PR-2026-0001', supplier_id:'SUP-0001', supplier_name:'National Flour Mills', product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', unit:'KG', quantity:45, return_reason:'damaged', return_date:'2026-06-12', status:'completed', notes:'Water-damaged bags from recent delivery.' },
+        { return_id:'PRET-0002', return_number:'PR-2026-0002', supplier_id:'SUP-0005', supplier_name:'Cocoa Import House', product_id:'PRD-0005', product_code:'RM-CCO-001', product_name:'Cocoa Powder', unit:'KG', quantity:30, return_reason:'expired', return_date:'2026-06-14', status:'approved', notes:'Batch expired before consumption.' },
+        { return_id:'PRET-0003', return_number:'PR-2026-0003', supplier_id:'SUP-0006', supplier_name:'FlexPack Solutions', product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper', unit:'ROLL', quantity:5, return_reason:'wrong_item', return_date:'2026-06-15', status:'pending', notes:'Received wrong film width — 400mm instead of 350mm.' },
+        { return_id:'PRET-0004', return_number:'PR-2026-0004', supplier_id:'SUP-0004', supplier_name:'Dairy Fresh Supplies', product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder', unit:'KG', quantity:12, return_reason:'quality_issue', return_date:'2026-06-16', status:'approved', notes:'Moisture content above acceptable limit.' },
+        { return_id:'PRET-0005', return_number:'PR-2026-0005', supplier_id:'SUP-0002', supplier_name:'Premier Sugar Traders', product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar', unit:'KG', quantity:25, return_reason:'damaged', return_date:'2026-06-17', status:'completed', notes:'Torn packaging during transport.' },
+        { return_id:'PRET-0006', return_number:'PR-2026-0006', supplier_id:'SUP-0003', supplier_name:'Golden Palm Oils', product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil', unit:'L', quantity:20, return_reason:'quality_issue', return_date:'2026-06-18', status:'pending', notes:'Off-spec colour detected in QC sample.' },
+        { return_id:'PRET-0007', return_number:'PR-2026-0007', supplier_id:'SUP-0007', supplier_name:'Carton World', product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box', unit:'CTN', quantity:40, return_reason:'wrong_item', return_date:'2026-06-19', status:'rejected', notes:'Supplier dispute — dimensions matched PO spec.' },
+        { return_id:'PRET-0008', return_number:'PR-2026-0008', supplier_id:'SUP-0008', supplier_name:'PrintLabel Co.', product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels', unit:'PCS', quantity:500, return_reason:'damaged', return_date:'2026-06-19', status:'completed', notes:'Labels scratched during unloading.' }
+      ];
+
+      const $tableEl = $('#returnsTable');
+      const $tbody = $tableEl.find('tbody');
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const currentYear = new Date().getFullYear();
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+
+      const getReason = (value) => REASONS.find(r => r.value === value);
+
+      const reasonLabel = (value) => getReason(value)?.label || value;
+
+      const reasonBadge = (value) => {
+        const r = getReason(value);
+        const cls = r?.badgeClass || 'badge-quality';
+        const label = r?.label || value;
+        return `<span class="badge reason-badge ${cls}">${escapeHtml(label)}</span>`;
+      };
+
+      const statusBadge = (status) => {
+        const map = {
+          pending: '<span class="badge status-badge badge-pending">Pending</span>',
+          approved: '<span class="badge status-badge badge-approved">Approved</span>',
+          completed: '<span class="badge status-badge badge-completed">Completed</span>',
+          rejected: '<span class="badge status-badge badge-rejected">Rejected</span>'
+        };
+        return map[status] || map.pending;
+      };
+
+      const getSupplier = (id) => SUPPLIERS.find(s => s.supplier_id === id);
+      const getProduct = (id) => PRODUCTS.find(p => p.product_id === id);
+      const getReturn = (id) => returns.find(r => r.return_id === id);
+
+      const populateSelects = () => {
+        const supplierOptions = SUPPLIERS.map(s =>
+          `<option value="${escapeHtml(s.supplier_id)}">${escapeHtml(s.supplier_name)}</option>`
+        ).join('');
+        const productOptions = PRODUCTS.map(p =>
+          `<option value="${escapeHtml(p.product_id)}">${escapeHtml(p.product_code)} — ${escapeHtml(p.product_name)}</option>`
+        ).join('');
+        const reasonOptions = REASONS.map(r =>
+          `<option value="${escapeHtml(r.value)}">${escapeHtml(r.label)}</option>`
+        ).join('');
+
+        ['addSupplier', 'editSupplier'].forEach(id => {
+          document.getElementById(id).innerHTML = supplierOptions;
+        });
+        ['addProduct', 'editProduct'].forEach(id => {
+          document.getElementById(id).innerHTML = productOptions;
+        });
+        ['addReason', 'editReason'].forEach(id => {
+          document.getElementById(id).innerHTML = reasonOptions;
+        });
+      };
+
+      const generateReturnNumber = () => {
+        const nums = returns.map(r => parseInt(String(r.return_number).replace(/[^0-9]/g,''), 10)).filter(n => !Number.isNaN(n));
+        const next = nums.length ? Math.max(...nums) + 1 : 1;
+        return `PR-${currentYear}-${String(next).padStart(4,'0')}`;
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const r of returns){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(r.return_number)}</td>
+              <td>${escapeHtml(r.supplier_name)}</td>
+              <td>${escapeHtml(r.product_name)}</td>
+              <td class="fw-semibold">${escapeHtml(r.quantity)} ${escapeHtml(r.unit)}</td>
+              <td>${reasonBadge(r.return_reason)}</td>
+              <td>${escapeHtml(r.return_date)}</td>
+              <td>${statusBadge(r.status)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(r.return_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(r.return_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 8,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[5, 'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0, 1, 2, 6] },
+          { responsivePriority: 2, targets: [3, 4, 5] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const readForm = (prefix) => {
+        const supplierId = document.getElementById(`${prefix}Supplier`).value;
+        const productId = document.getElementById(`${prefix}Product`).value;
+        const quantity = parseInt(document.getElementById(`${prefix}Quantity`).value, 10);
+        const returnReason = document.getElementById(`${prefix}Reason`).value;
+        const returnDate = document.getElementById(`${prefix}ReturnDate`).value;
+        const status = document.getElementById(`${prefix}Status`).value;
+        const notes = document.getElementById(`${prefix}Notes`).value.trim();
+
+        if (!supplierId || !productId || !returnReason || !returnDate || !status) return null;
+        if (Number.isNaN(quantity) || quantity <= 0) return null;
+
+        const supplier = getSupplier(supplierId);
+        const product = getProduct(productId);
+        if (!supplier || !product) return null;
+
+        return {
+          supplier_id: supplierId,
+          supplier_name: supplier.supplier_name,
+          product_id: productId,
+          product_code: product.product_code,
+          product_name: product.product_name,
+          unit: product.unit,
+          quantity,
+          return_reason: returnReason,
+          return_date: returnDate,
+          status,
+          notes: notes || '—'
+        };
+      };
+
+      const fillViewModal = (r) => {
+        document.getElementById('viewReturnNumber').textContent = r.return_number;
+        document.getElementById('viewReturnDate').textContent = r.return_date;
+        document.getElementById('viewStatusContainer').innerHTML = statusBadge(r.status);
+        document.getElementById('viewReasonContainer').innerHTML = reasonBadge(r.return_reason);
+        document.getElementById('viewQuantity').textContent = `${r.quantity} ${r.unit}`;
+        document.getElementById('viewSupplier').textContent = r.supplier_name;
+        document.getElementById('viewProduct').textContent = r.product_name;
+        document.getElementById('viewProductCode').textContent = r.product_code;
+        document.getElementById('viewUnit').textContent = r.unit;
+        document.getElementById('viewNotes').textContent = r.notes || '—';
+      };
+
+      const fillEditModal = (r) => {
+        document.getElementById('editReturnIdHidden').value = r.return_id;
+        document.getElementById('editReturnNumber').value = r.return_number;
+        document.getElementById('editSupplier').value = r.supplier_id;
+        document.getElementById('editProduct').value = r.product_id;
+        document.getElementById('editQuantity').value = r.quantity;
+        document.getElementById('editReason').value = r.return_reason;
+        document.getElementById('editReturnDate').value = r.return_date;
+        document.getElementById('editStatus').value = r.status;
+        document.getElementById('editNotes').value = r.notes === '—' ? '' : (r.notes || '');
+      };
+
+      populateSelects();
+
+      document.getElementById('createReturnModal').addEventListener('show.bs.modal', () => {
+        document.getElementById('createReturnForm').reset();
+        document.getElementById('addReturnDate').value = todayStr;
+        document.getElementById('addStatus').value = 'pending';
+      });
+
+      $('#btnRefresh').on('click', () => refreshTable());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('createReturnForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const data = readForm('add');
+        if (!data) return;
+
+        const nextIdNum = returns.length
+          ? Math.max(...returns.map(x => parseInt(String(x.return_id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        returns.push({
+          return_id: `PRET-${String(nextIdNum).padStart(4,'0')}`,
+          return_number: generateReturnNumber(),
+          ...data
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('createReturnModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('editReturnForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('editReturnIdHidden').value;
+        const existing = getReturn(id);
+        if (!existing) return;
+
+        const data = readForm('edit');
+        if (!data) return;
+
+        Object.assign(existing, data);
+        bootstrap.Modal.getInstance(document.getElementById('editReturnModal'))?.hide();
+        refreshTable();
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const r = getReturn(id);
+        if (!r) return;
+
+        if (action === 'view'){
+          fillViewModal(r);
+          new bootstrap.Modal(document.getElementById('viewReturnModal')).show();
+          return;
+        }
+
+        if (action === 'edit'){
+          fillEditModal(r);
+          new bootstrap.Modal(document.getElementById('editReturnModal')).show();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => refreshTable());
+    })();
+  </script>
+
+</body>
+</html>

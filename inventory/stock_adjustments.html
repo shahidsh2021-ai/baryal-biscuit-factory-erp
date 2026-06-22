@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock Adjustments Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .adj-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-increase{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-decrease{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+
+    .qty-increase{ color:var(--erp-success); font-weight:800; }
+    .qty-decrease{ color:var(--erp-danger); font-weight:800; }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .adj-badge{ color:rgba(255,255,255,.92); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-sliders text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Stock Adjustments Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Inventory • Corrections • Production Usage</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="stock_adjustments.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-boxes-stacked"></i><p>Inventory</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="categories.html" class="nav-link"><i class="fa-solid fa-tags me-2"></i><p>Categories</p></a></li>
+                  <li class="nav-item"><a href="units.html" class="nav-link"><i class="fa-solid fa-ruler-combined me-2"></i><p>Units</p></a></li>
+                  <li class="nav-item"><a href="products.html" class="nav-link"><i class="fa-solid fa-box me-2"></i><p>Products</p></a></li>
+                  <li class="nav-item"><a href="warehouses.html" class="nav-link"><i class="fa-solid fa-warehouse me-2"></i><p>Warehouses</p></a></li>
+                  <li class="nav-item"><a href="stock_details.html" class="nav-link"><i class="fa-solid fa-dolly me-2"></i><p>Stock Details</p></a></li>
+                  <li class="nav-item"><a href="stock_adjustments.html" class="nav-link active"><i class="fa-solid fa-sliders me-2"></i><p>Stock Adjustments</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Stock Adjustments Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="categories.html">Inventory</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Stock Adjustments</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Record stock increases and decreases with audit reasons for damage, expiry, production usage, and manual corrections.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#addAdjustmentModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Adjustment
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Adjustments</div>
+                      <div class="kpi-value" id="kpiTotalAdjustments">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-sliders" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Stock Increase Adjustments</div>
+                      <div class="kpi-value" id="kpiIncreaseAdjustments">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-arrow-trend-up" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(220,53,69,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Stock Decrease Adjustments</div>
+                      <div class="kpi-value" id="kpiDecreaseAdjustments">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(220,53,69,.10);border:1px solid rgba(220,53,69,.20);">
+                      <i class="fa-solid fa-arrow-trend-down" style="color:var(--erp-danger);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Today's Adjustments</div>
+                      <div class="kpi-value" id="kpiTodayAdjustments">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-calendar-day" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-sliders text-primary"></i>
+                <span>Stock Adjustments DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Responsive • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="adjustmentsTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:130px;">Adjustment ID</th>
+                      <th style="width:130px;">Product Code</th>
+                      <th>Product Name</th>
+                      <th>Warehouse</th>
+                      <th style="width:150px;">Adjustment Type</th>
+                      <th style="width:100px;">Quantity</th>
+                      <th style="width:120px;">Previous Stock</th>
+                      <th style="width:110px;">New Stock</th>
+                      <th>Reason</th>
+                      <th style="width:140px;">Adjustment Date</th>
+                      <th style="width:130px;">Created By</th>
+                      <th style="width:210px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Adjustment Modal -->
+  <div class="modal fade" id="addAdjustmentModal" tabindex="-1" aria-hidden="true" aria-labelledby="addAdjustmentModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addAdjustmentModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Adjustment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addAdjustmentForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addProduct" name="product_id" required></select>
+                  <label for="addProduct"><i class="fa-solid fa-box me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addWarehouse" name="warehouse_id" required></select>
+                  <label for="addWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addAdjustmentType" name="adjustment_type" required>
+                    <option value="stock_increase">Stock Increase</option>
+                    <option value="stock_decrease">Stock Decrease</option>
+                  </select>
+                  <label for="addAdjustmentType"><i class="fa-solid fa-arrows-up-down me-2"></i>Adjustment Type</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addQuantity" name="quantity" placeholder="Quantity" min="1" step="1" required />
+                  <label for="addQuantity"><i class="fa-solid fa-hashtag me-2"></i>Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addReason" name="reason" required></select>
+                  <label for="addReason"><i class="fa-solid fa-circle-question me-2"></i>Reason</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addAdjustmentDate" name="created_at" required />
+                  <label for="addAdjustmentDate"><i class="fa-regular fa-calendar me-2"></i>Adjustment Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addPreviousStock" placeholder="Previous Stock" readonly />
+                  <label for="addPreviousStock"><i class="fa-solid fa-layer-group me-2"></i>Previous Stock (Auto)</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addNewStock" placeholder="New Stock" readonly />
+                  <label for="addNewStock"><i class="fa-solid fa-boxes-stacked me-2"></i>New Stock (Auto)</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: adjustments are kept in-memory. DB fields: adjustment_id, product_id, warehouse_id, adjustment_type, quantity, reason, created_by, created_at.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Adjustment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Adjustment Modal -->
+  <div class="modal fade" id="editAdjustmentModal" tabindex="-1" aria-hidden="true" aria-labelledby="editAdjustmentModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editAdjustmentModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Adjustment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editAdjustmentForm" autocomplete="off">
+          <input type="hidden" id="editAdjIdHidden" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editProduct" name="product_id" required></select>
+                  <label for="editProduct"><i class="fa-solid fa-box me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editWarehouse" name="warehouse_id" required></select>
+                  <label for="editWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editAdjustmentType" name="adjustment_type" required>
+                    <option value="stock_increase">Stock Increase</option>
+                    <option value="stock_decrease">Stock Decrease</option>
+                  </select>
+                  <label for="editAdjustmentType"><i class="fa-solid fa-arrows-up-down me-2"></i>Adjustment Type</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="editQuantity" name="quantity" placeholder="Quantity" min="1" step="1" required />
+                  <label for="editQuantity"><i class="fa-solid fa-hashtag me-2"></i>Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editReason" name="reason" required></select>
+                  <label for="editReason"><i class="fa-solid fa-circle-question me-2"></i>Reason</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="editAdjustmentDate" name="created_at" required />
+                  <label for="editAdjustmentDate"><i class="fa-regular fa-calendar me-2"></i>Adjustment Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editPreviousStock" placeholder="Previous Stock" readonly />
+                  <label for="editPreviousStock"><i class="fa-solid fa-layer-group me-2"></i>Previous Stock</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editNewStock" placeholder="New Stock" readonly />
+                  <label for="editNewStock"><i class="fa-solid fa-boxes-stacked me-2"></i>New Stock</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-arrows-rotate me-2"></i>Changes update the table immediately (demo-only).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Adjustment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Adjustment Modal -->
+  <div class="modal fade" id="viewAdjustmentModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewAdjustmentModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewAdjustmentModalLabel"><i class="fa-solid fa-eye me-2"></i>View Adjustment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-sliders" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewAdjId">—</div>
+                      <div class="text-muted small" id="viewAdjDate">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-arrows-up-down me-2"></i>Adjustment Type</div>
+                      <div id="viewAdjTypeContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-hashtag me-2"></i>Quantity</div>
+                      <div class="fw-bold" id="viewAdjQuantity">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-user me-2"></i>Created By</div>
+                      <div class="fw-semibold" id="viewAdjCreatedBy">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-box me-2 text-primary"></i>Product &amp; Warehouse</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Product Code</div>
+                      <div class="fw-bold" id="viewAdjProductCode">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Product Name</div>
+                      <div class="fw-bold" id="viewAdjProductName">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Warehouse</div>
+                      <div class="fw-bold" id="viewAdjWarehouse">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Reason</div>
+                      <div class="fw-bold" id="viewAdjReason">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Previous Stock</div>
+                      <div class="fw-bold" id="viewAdjPreviousStock">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">New Stock</div>
+                      <div class="fw-bold" id="viewAdjNewStock">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: adjustment record is read-only.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Adjustment Modal -->
+  <div class="modal fade" id="deleteAdjustmentModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteAdjustmentModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteAdjustmentModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Adjustment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteAdjustmentForm">
+          <input type="hidden" id="deleteAdjIdHidden" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteAdjTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteAdjMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      const REASONS = [
+        { value:'damage', label:'Damage' },
+        { value:'expired', label:'Expired' },
+        { value:'lost', label:'Lost' },
+        { value:'correction', label:'Correction' },
+        { value:'production_usage', label:'Production Usage' },
+        { value:'production_return', label:'Production Return' },
+        { value:'manual_adjustment', label:'Manual Adjustment' }
+      ];
+
+      const PRODUCTS = [
+        { product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour' },
+        { product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar' },
+        { product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil' },
+        { product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder' },
+        { product_id:'PRD-0005', product_code:'RM-CCO-001', product_name:'Cocoa Powder' },
+        { product_id:'PRD-0006', product_code:'FG-CHB-001', product_name:'Chocolate Biscuit' },
+        { product_id:'PRD-0007', product_code:'FG-MKB-001', product_name:'Milk Biscuit' },
+        { product_id:'PRD-0008', product_code:'FG-CNB-001', product_name:'Coconut Biscuit' },
+        { product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper' },
+        { product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box' },
+        { product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels' }
+      ];
+
+      const WAREHOUSES = [
+        { warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store' },
+        { warehouse_id:'WRH-0002', warehouse_name:'Finished Goods Warehouse' },
+        { warehouse_id:'WRH-0003', warehouse_name:'Packaging Store' },
+        { warehouse_id:'WRH-0004', warehouse_name:'Cold Storage Unit' },
+        { warehouse_id:'WRH-0005', warehouse_name:'Dispatch Warehouse' }
+      ];
+
+      const STOCK_LOOKUP = {
+        'PRD-0001|WRH-0001': 1450,
+        'PRD-0002|WRH-0001': 520,
+        'PRD-0003|WRH-0001': 410,
+        'PRD-0004|WRH-0004': 180,
+        'PRD-0005|WRH-0001': 0,
+        'PRD-0006|WRH-0002': 1280,
+        'PRD-0007|WRH-0002': 960,
+        'PRD-0008|WRH-0005': 420,
+        'PRD-0008|WRH-0002': 300,
+        'PRD-0009|WRH-0003': 22,
+        'PRD-0010|WRH-0003': 340,
+        'PRD-0011|WRH-0003': 1850
+      };
+
+      let adjustments = [
+        { adjustment_id:'ADJ-0001', product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store', adjustment_type:'stock_decrease', quantity:120, previous_stock:1570, new_stock:1450, reason:'production_usage', created_by:'Usman Khalid', created_at:'2026-06-10' },
+        { adjustment_id:'ADJ-0002', product_id:'PRD-0005', product_code:'RM-CCO-001', product_name:'Cocoa Powder', warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store', adjustment_type:'stock_decrease', quantity:45, previous_stock:45, new_stock:0, reason:'expired', created_by:'Sara Khan', created_at:'2026-06-14' },
+        { adjustment_id:'ADJ-0003', product_id:'PRD-0006', product_code:'FG-CHB-001', product_name:'Chocolate Biscuit', warehouse_id:'WRH-0002', warehouse_name:'Finished Goods Warehouse', adjustment_type:'stock_increase', quantity:320, previous_stock:960, new_stock:1280, reason:'production_return', created_by:'Admin', created_at:'2026-06-18' },
+        { adjustment_id:'ADJ-0004', product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper', warehouse_id:'WRH-0003', warehouse_name:'Packaging Store', adjustment_type:'stock_decrease', quantity:8, previous_stock:30, new_stock:22, reason:'damage', created_by:'Ali Raza', created_at:'2026-06-12' },
+        { adjustment_id:'ADJ-0005', product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar', warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store', adjustment_type:'stock_increase', quantity:100, previous_stock:420, new_stock:520, reason:'correction', created_by:'Admin', created_at:'2026-06-17' },
+        { adjustment_id:'ADJ-0006', product_id:'PRD-0007', product_code:'FG-MKB-001', product_name:'Milk Biscuit', warehouse_id:'WRH-0002', warehouse_name:'Finished Goods Warehouse', adjustment_type:'stock_decrease', quantity:40, previous_stock:1000, new_stock:960, reason:'lost', created_by:'Hamza Siddiqui', created_at:'2026-06-19' },
+        { adjustment_id:'ADJ-0007', product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box', warehouse_id:'WRH-0003', warehouse_name:'Packaging Store', adjustment_type:'stock_increase', quantity:50, previous_stock:290, new_stock:340, reason:'manual_adjustment', created_by:'Admin', created_at:'2026-06-19' },
+        { adjustment_id:'ADJ-0008', product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil', warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store', adjustment_type:'stock_decrease', quantity:35, previous_stock:445, new_stock:410, reason:'production_usage', created_by:'Usman Khalid', created_at:'2026-06-16' },
+        { adjustment_id:'ADJ-0009', product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels', warehouse_id:'WRH-0003', warehouse_name:'Packaging Store', adjustment_type:'stock_decrease', quantity:150, previous_stock:2000, new_stock:1850, reason:'damage', created_by:'Sara Khan', created_at:'2026-06-10' },
+        { adjustment_id:'ADJ-0010', product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder', warehouse_id:'WRH-0004', warehouse_name:'Cold Storage Unit', adjustment_type:'stock_increase', quantity:20, previous_stock:160, new_stock:180, reason:'correction', created_by:'Admin', created_at:'2026-06-19' }
+      ];
+
+      const $tableEl = $('#adjustmentsTable');
+      const $tbody = $tableEl.find('tbody');
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+
+      const reasonLabel = (value) => {
+        const r = REASONS.find(x => x.value === value);
+        return r ? r.label : value;
+      };
+
+      const typeBadge = (type) => {
+        if (type === 'stock_increase') return '<span class="badge adj-badge badge-increase">Stock Increase</span>';
+        return '<span class="badge adj-badge badge-decrease">Stock Decrease</span>';
+      };
+
+      const qtyHtml = (type, qty) => {
+        const cls = type === 'stock_increase' ? 'qty-increase' : 'qty-decrease';
+        const prefix = type === 'stock_increase' ? '+' : '-';
+        return `<span class="${cls}">${prefix}${escapeHtml(qty)}</span>`;
+      };
+
+      const getProduct = (id) => PRODUCTS.find(p => p.product_id === id);
+      const getWarehouse = (id) => WAREHOUSES.find(w => w.warehouse_id === id);
+      const stockKey = (productId, warehouseId) => `${productId}|${warehouseId}`;
+
+      const getCurrentStock = (productId, warehouseId) => {
+        return STOCK_LOOKUP[stockKey(productId, warehouseId)] ?? 0;
+      };
+
+      const computeStocks = (type, quantity, previousStock) => {
+        const prev = Number(previousStock) || 0;
+        const qty = Number(quantity) || 0;
+        if (type === 'stock_increase') return { previous_stock: prev, new_stock: prev + qty };
+        return { previous_stock: prev, new_stock: Math.max(0, prev - qty) };
+      };
+
+      const populateSelects = () => {
+        const productOptions = PRODUCTS.map(p =>
+          `<option value="${escapeHtml(p.product_id)}">${escapeHtml(p.product_code)} — ${escapeHtml(p.product_name)}</option>`
+        ).join('');
+        const warehouseOptions = WAREHOUSES.map(w =>
+          `<option value="${escapeHtml(w.warehouse_id)}">${escapeHtml(w.warehouse_name)}</option>`
+        ).join('');
+        const reasonOptions = REASONS.map(r =>
+          `<option value="${escapeHtml(r.value)}">${escapeHtml(r.label)}</option>`
+        ).join('');
+
+        ['addProduct', 'editProduct'].forEach(id => {
+          document.getElementById(id).innerHTML = productOptions;
+        });
+        ['addWarehouse', 'editWarehouse'].forEach(id => {
+          document.getElementById(id).innerHTML = warehouseOptions;
+        });
+        ['addReason', 'editReason'].forEach(id => {
+          document.getElementById(id).innerHTML = reasonOptions;
+        });
+      };
+
+      const updatePreview = (prefix) => {
+        const productId = document.getElementById(`${prefix}Product`).value;
+        const warehouseId = document.getElementById(`${prefix}Warehouse`).value;
+        const type = document.getElementById(`${prefix}AdjustmentType`).value;
+        const quantity = parseInt(document.getElementById(`${prefix}Quantity`).value, 10) || 0;
+        const previous = getCurrentStock(productId, warehouseId);
+        const stocks = computeStocks(type, quantity, previous);
+        document.getElementById(`${prefix}PreviousStock`).value = stocks.previous_stock;
+        document.getElementById(`${prefix}NewStock`).value = stocks.new_stock;
+      };
+
+      const renderKPIs = () => {
+        const total = adjustments.length;
+        const increase = adjustments.filter(a => a.adjustment_type === 'stock_increase').length;
+        const decrease = adjustments.filter(a => a.adjustment_type === 'stock_decrease').length;
+        const todayCount = adjustments.filter(a => a.created_at === todayStr).length;
+
+        $('#kpiTotalAdjustments').text(total);
+        $('#kpiIncreaseAdjustments').text(increase);
+        $('#kpiDecreaseAdjustments').text(decrease);
+        $('#kpiTodayAdjustments').text(todayCount);
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const a of adjustments){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(a.adjustment_id)}</td>
+              <td class="fw-semibold">${escapeHtml(a.product_code)}</td>
+              <td>${escapeHtml(a.product_name)}</td>
+              <td>${escapeHtml(a.warehouse_name)}</td>
+              <td>${typeBadge(a.adjustment_type)}</td>
+              <td>${qtyHtml(a.adjustment_type, a.quantity)}</td>
+              <td>${escapeHtml(a.previous_stock)}</td>
+              <td class="fw-semibold">${escapeHtml(a.new_stock)}</td>
+              <td>${escapeHtml(reasonLabel(a.reason))}</td>
+              <td>${escapeHtml(a.created_at)}</td>
+              <td>${escapeHtml(a.created_by)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(a.adjustment_id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(a.adjustment_id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(a.adjustment_id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[9, 'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0, 2, 4, 9] },
+          { responsivePriority: 2, targets: [1, 3, 5, 6, 7] },
+          { responsivePriority: 3, targets: [8, 10] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const getAdjustment = (id) => adjustments.find(a => a.adjustment_id === id);
+
+      const fillViewModal = (a) => {
+        document.getElementById('viewAdjId').textContent = a.adjustment_id;
+        document.getElementById('viewAdjDate').textContent = a.created_at;
+        document.getElementById('viewAdjTypeContainer').innerHTML = typeBadge(a.adjustment_type);
+        document.getElementById('viewAdjQuantity').innerHTML = qtyHtml(a.adjustment_type, a.quantity);
+        document.getElementById('viewAdjCreatedBy').textContent = a.created_by;
+        document.getElementById('viewAdjProductCode').textContent = a.product_code;
+        document.getElementById('viewAdjProductName').textContent = a.product_name;
+        document.getElementById('viewAdjWarehouse').textContent = a.warehouse_name;
+        document.getElementById('viewAdjReason').textContent = reasonLabel(a.reason);
+        document.getElementById('viewAdjPreviousStock').textContent = a.previous_stock;
+        document.getElementById('viewAdjNewStock').textContent = a.new_stock;
+      };
+
+      const fillEditModal = (a) => {
+        document.getElementById('editAdjIdHidden').value = a.adjustment_id;
+        document.getElementById('editProduct').value = a.product_id;
+        document.getElementById('editWarehouse').value = a.warehouse_id;
+        document.getElementById('editAdjustmentType').value = a.adjustment_type;
+        document.getElementById('editQuantity').value = a.quantity;
+        document.getElementById('editReason').value = a.reason;
+        document.getElementById('editAdjustmentDate').value = a.created_at;
+        document.getElementById('editPreviousStock').value = a.previous_stock;
+        document.getElementById('editNewStock').value = a.new_stock;
+      };
+
+      const buildRecordFromForm = (prefix, existingPrevious) => {
+        const productId = document.getElementById(`${prefix}Product`).value;
+        const warehouseId = document.getElementById(`${prefix}Warehouse`).value;
+        const type = document.getElementById(`${prefix}AdjustmentType`).value;
+        const quantity = parseInt(document.getElementById(`${prefix}Quantity`).value, 10);
+        const reason = document.getElementById(`${prefix}Reason`).value;
+        const createdAt = document.getElementById(`${prefix}AdjustmentDate`).value;
+
+        if (!productId || !warehouseId || !type || !reason || !createdAt) return null;
+        if (Number.isNaN(quantity) || quantity <= 0) return null;
+
+        const product = getProduct(productId);
+        const warehouse = getWarehouse(warehouseId);
+        if (!product || !warehouse) return null;
+
+        const previousStock = prefix === 'edit' && existingPrevious != null
+          ? existingPrevious
+          : getCurrentStock(productId, warehouseId);
+        const stocks = computeStocks(type, quantity, previousStock);
+
+        return {
+          product_id: productId,
+          product_code: product.product_code,
+          product_name: product.product_name,
+          warehouse_id: warehouseId,
+          warehouse_name: warehouse.warehouse_name,
+          adjustment_type: type,
+          quantity,
+          previous_stock: stocks.previous_stock,
+          new_stock: stocks.new_stock,
+          reason,
+          created_by: 'Admin',
+          created_at: createdAt
+        };
+      };
+
+      populateSelects();
+      document.getElementById('addAdjustmentDate').value = todayStr;
+
+      ['addProduct', 'addWarehouse', 'addAdjustmentType', 'addQuantity'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => updatePreview('add'));
+        document.getElementById(id).addEventListener('input', () => updatePreview('add'));
+      });
+
+      ['editProduct', 'editWarehouse', 'editAdjustmentType', 'editQuantity'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          const idVal = document.getElementById('editAdjIdHidden').value;
+          const existing = getAdjustment(idVal);
+          updatePreview('edit');
+          if (existing) {
+            document.getElementById('editPreviousStock').value = existing.previous_stock;
+            const type = document.getElementById('editAdjustmentType').value;
+            const qty = parseInt(document.getElementById('editQuantity').value, 10) || 0;
+            const stocks = computeStocks(type, qty, existing.previous_stock);
+            document.getElementById('editNewStock').value = stocks.new_stock;
+          }
+        });
+        document.getElementById(id).addEventListener('input', () => {
+          const idVal = document.getElementById('editAdjIdHidden').value;
+          const existing = getAdjustment(idVal);
+          if (existing) {
+            const type = document.getElementById('editAdjustmentType').value;
+            const qty = parseInt(document.getElementById('editQuantity').value, 10) || 0;
+            const stocks = computeStocks(type, qty, existing.previous_stock);
+            document.getElementById('editPreviousStock').value = existing.previous_stock;
+            document.getElementById('editNewStock').value = stocks.new_stock;
+          }
+        });
+      });
+
+      document.getElementById('addAdjustmentModal').addEventListener('show.bs.modal', () => {
+        document.getElementById('addAdjustmentForm').reset();
+        document.getElementById('addAdjustmentDate').value = todayStr;
+        document.getElementById('addAdjustmentType').value = 'stock_increase';
+        updatePreview('add');
+      });
+
+      $('#btnRefresh').on('click', () => refreshTable());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('addAdjustmentForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const record = buildRecordFromForm('add');
+        if (!record) return;
+
+        const nextNum = adjustments.length
+          ? Math.max(...adjustments.map(x => parseInt(String(x.adjustment_id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        adjustments.push({
+          adjustment_id: `ADJ-${String(nextNum).padStart(4,'0')}`,
+          ...record
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('addAdjustmentModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('editAdjustmentForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('editAdjIdHidden').value;
+        const existing = getAdjustment(id);
+        if (!existing) return;
+
+        const record = buildRecordFromForm('edit', existing.previous_stock);
+        if (!record) return;
+
+        Object.assign(existing, record);
+        bootstrap.Modal.getInstance(document.getElementById('editAdjustmentModal'))?.hide();
+        refreshTable();
+      });
+
+      document.getElementById('deleteAdjustmentForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('deleteAdjIdHidden').value;
+        adjustments = adjustments.filter(a => a.adjustment_id !== id);
+        bootstrap.Modal.getInstance(document.getElementById('deleteAdjustmentModal'))?.hide();
+        refreshTable();
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const a = getAdjustment(id);
+        if (!a) return;
+
+        if (action === 'view'){
+          fillViewModal(a);
+          new bootstrap.Modal(document.getElementById('viewAdjustmentModal')).show();
+          return;
+        }
+
+        if (action === 'edit'){
+          fillEditModal(a);
+          new bootstrap.Modal(document.getElementById('editAdjustmentModal')).show();
+          return;
+        }
+
+        if (action === 'delete'){
+          document.getElementById('deleteAdjIdHidden').value = a.adjustment_id;
+          document.getElementById('deleteAdjTitle').textContent = `Delete adjustment ${a.adjustment_id}?`;
+          document.getElementById('deleteAdjMessage').textContent = `${a.product_name} (${a.product_code}) — ${reasonLabel(a.reason)}. This action cannot be undone.`;
+          new bootstrap.Modal(document.getElementById('deleteAdjustmentModal')).show();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => refreshTable());
+    })();
+  </script>
+
+</body>
+</html>

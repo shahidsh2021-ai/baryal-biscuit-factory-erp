@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock Movements Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .mov-badge, .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-stock-in{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-stock-out{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+    .badge-transfer{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-purchase{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-production{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-sales{ background:rgba(11,42,74,.10); color:var(--erp-primary); border-color:rgba(11,42,74,.20); }
+    .badge-pending{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-completed{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-cancelled{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+
+    .warehouse-flow{ color:rgba(0,0,0,.55); font-size:.85rem; }
+    .warehouse-name{ font-weight:650; }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    .detail-timeline-item{
+      border-left:3px solid rgba(11,42,74,.15);
+      padding-left:1rem;
+      margin-left:.35rem;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .mov-badge,
+    [data-bs-theme="dark"] .status-badge{ color:rgba(255,255,255,.92); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-truck-ramp-box text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Stock Movements Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Inventory • Transfers • Purchase &amp; Production Flow</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="stock_movements.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-boxes-stacked"></i><p>Inventory</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="categories.html" class="nav-link"><i class="fa-solid fa-tags me-2"></i><p>Categories</p></a></li>
+                  <li class="nav-item"><a href="units.html" class="nav-link"><i class="fa-solid fa-ruler-combined me-2"></i><p>Units</p></a></li>
+                  <li class="nav-item"><a href="products.html" class="nav-link"><i class="fa-solid fa-box me-2"></i><p>Products</p></a></li>
+                  <li class="nav-item"><a href="warehouses.html" class="nav-link"><i class="fa-solid fa-warehouse me-2"></i><p>Warehouses</p></a></li>
+                  <li class="nav-item"><a href="stock_details.html" class="nav-link"><i class="fa-solid fa-dolly me-2"></i><p>Stock Details</p></a></li>
+                  <li class="nav-item"><a href="stock_adjustments.html" class="nav-link"><i class="fa-solid fa-sliders me-2"></i><p>Stock Adjustments</p></a></li>
+                  <li class="nav-item"><a href="stock_movements.html" class="nav-link active"><i class="fa-solid fa-truck-ramp-box me-2"></i><p>Stock Movements</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Stock Movements Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="categories.html">Inventory</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Stock Movements</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Track inbound, outbound, and inter-warehouse stock movements with reference documents and workflow status.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-erp" type="button" data-bs-toggle="modal" data-bs-target="#addMovementModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Movement
+              </button>
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content pb-4">
+        <div class="container-fluid">
+
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Movements</div>
+                      <div class="kpi-value" id="kpiTotalMovements">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-truck-ramp-box" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Stock In</div>
+                      <div class="kpi-value" id="kpiStockIn">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-arrow-down-long" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(220,53,69,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Stock Out</div>
+                      <div class="kpi-value" id="kpiStockOut">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(220,53,69,.10);border:1px solid rgba(220,53,69,.20);">
+                      <i class="fa-solid fa-arrow-up-long" style="color:var(--erp-danger);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(13,110,253,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Transfers</div>
+                      <div class="kpi-value" id="kpiTransfers">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(13,110,253,.10);border:1px solid rgba(13,110,253,.20);">
+                      <i class="fa-solid fa-right-left" style="color:var(--erp-info);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-truck-ramp-box text-primary"></i>
+                <span>Stock Movements DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Responsive • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="movementsTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:120px;">Movement ID</th>
+                      <th style="width:130px;">Product Code</th>
+                      <th>Product Name</th>
+                      <th style="width:170px;">Movement Type</th>
+                      <th>Source Warehouse</th>
+                      <th>Destination Warehouse</th>
+                      <th style="width:100px;">Quantity</th>
+                      <th style="width:150px;">Reference Number</th>
+                      <th style="width:140px;">Movement Date</th>
+                      <th style="width:130px;">Created By</th>
+                      <th style="width:120px;">Status</th>
+                      <th style="width:210px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Movement Modal -->
+  <div class="modal fade" id="addMovementModal" tabindex="-1" aria-hidden="true" aria-labelledby="addMovementModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addMovementModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Movement</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addMovementForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addProduct" name="product_id" required></select>
+                  <label for="addProduct"><i class="fa-solid fa-box me-2"></i>Product</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addMovementType" name="movement_type" required></select>
+                  <label for="addMovementType"><i class="fa-solid fa-arrows-up-down-left-right me-2"></i>Movement Type</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6" id="addSourceWrap">
+                <div class="form-floating">
+                  <select class="form-select" id="addSourceWarehouse" name="source_warehouse_id"></select>
+                  <label for="addSourceWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Source Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6" id="addDestWrap">
+                <div class="form-floating">
+                  <select class="form-select" id="addDestWarehouse" name="destination_warehouse_id"></select>
+                  <label for="addDestWarehouse"><i class="fa-solid fa-warehouse me-2"></i>Destination Warehouse</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="addQuantity" name="quantity" placeholder="Quantity" min="1" step="1" required />
+                  <label for="addQuantity"><i class="fa-solid fa-hashtag me-2"></i>Quantity</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addReferenceNo" name="reference_no" placeholder="Reference Number" required />
+                  <label for="addReferenceNo"><i class="fa-solid fa-file-lines me-2"></i>Reference Number</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addStatus" name="status" required>
+                    <option value="pending">Pending</option>
+                    <option value="completed" selected>Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <label for="addStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addMovementDate" name="created_at" required />
+                  <label for="addMovementDate"><i class="fa-regular fa-calendar me-2"></i>Movement Date</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: movements are kept in-memory. DB fields: movement_id, product_id, source_warehouse_id, destination_warehouse_id, movement_type, quantity, reference_no, status, created_by, created_at.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Movement</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Movement Modal -->
+  <div class="modal fade" id="viewMovementModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewMovementModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewMovementModalLabel"><i class="fa-solid fa-eye me-2"></i>View Movement</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:18px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-truck-ramp-box" style="color:var(--erp-primary);"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold" id="viewMovId">—</div>
+                      <div class="text-muted small" id="viewMovDate">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-arrows-up-down-left-right me-2"></i>Movement Type</div>
+                      <div id="viewMovTypeContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-hashtag me-2"></i>Quantity</div>
+                      <div class="fw-bold" id="viewMovQuantity">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-circle-info me-2"></i>Status</div>
+                      <div id="viewMovStatusContainer"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-user me-2"></i>Created By</div>
+                      <div class="fw-semibold" id="viewMovCreatedBy">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-box me-2 text-primary"></i>Movement Summary</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Product Code</div>
+                      <div class="fw-bold" id="viewMovProductCode">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Product Name</div>
+                      <div class="fw-bold" id="viewMovProductName">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Source Warehouse</div>
+                      <div class="fw-bold" id="viewMovSource">—</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="text-muted small fw-semibold">Destination Warehouse</div>
+                      <div class="fw-bold" id="viewMovDestination">—</div>
+                    </div>
+                    <div class="col-12">
+                      <div class="text-muted small fw-semibold">Reference Number</div>
+                      <div class="fw-bold" id="viewMovReference">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: movement record is read-only.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movement Details Modal -->
+  <div class="modal fade" id="movementDetailsModal" tabindex="-1" aria-hidden="true" aria-labelledby="movementDetailsModalLabel">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="movementDetailsModalLabel"><i class="fa-solid fa-file-lines me-2"></i>Movement Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-12 col-lg-4">
+              <div class="erp-card h-100" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-id-card me-2 text-primary"></i>Document Header</div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Movement ID</span><div class="fw-bold" id="detMovId">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Reference Number</span><div class="fw-bold" id="detReference">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Movement Date</span><div class="fw-bold" id="detDate">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Created By</span><div class="fw-bold" id="detCreatedBy">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Status</span><div id="detStatusContainer"></div></div>
+                  <div class="mb-0"><span class="text-muted small fw-semibold">Movement Type</span><div id="detTypeContainer" class="mt-1"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <div class="erp-card h-100">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-box me-2 text-primary"></i>Product Information</div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Product ID</span><div class="fw-bold" id="detProductId">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Product Code</span><div class="fw-bold" id="detProductCode">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Product Name</span><div class="fw-bold" id="detProductName">—</div></div>
+                  <div class="mb-2"><span class="text-muted small fw-semibold">Unit</span><div class="fw-bold" id="detUnit">—</div></div>
+                  <div class="mb-0"><span class="text-muted small fw-semibold">Quantity Moved</span><div class="fw-bold fs-5" style="color:var(--erp-primary);" id="detQuantity">—</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <div class="erp-card h-100">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-route me-2 text-primary"></i>Warehouse Route</div>
+                  <div class="detail-timeline-item mb-3">
+                    <div class="text-muted small fw-semibold">Source</div>
+                    <div class="warehouse-name" id="detSource">—</div>
+                    <div class="text-muted small" id="detSourceId">—</div>
+                  </div>
+                  <div class="text-center my-2"><i class="fa-solid fa-arrow-down" style="color:var(--erp-primary);"></i></div>
+                  <div class="detail-timeline-item">
+                    <div class="text-muted small fw-semibold">Destination</div>
+                    <div class="warehouse-name" id="detDestination">—</div>
+                    <div class="text-muted small" id="detDestinationId">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Movement Audit Trail</div>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th>Event</th>
+                          <th>Timestamp</th>
+                          <th>User</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody id="detAuditBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      const MOVEMENT_TYPES = [
+        { value:'stock_in', label:'Stock In', category:'in' },
+        { value:'stock_out', label:'Stock Out', category:'out' },
+        { value:'transfer', label:'Transfer', category:'transfer' },
+        { value:'purchase_receiving', label:'Purchase Receiving', category:'in' },
+        { value:'production_consumption', label:'Production Consumption', category:'out' },
+        { value:'production_return', label:'Production Return', category:'in' },
+        { value:'sales_dispatch', label:'Sales Dispatch', category:'out' }
+      ];
+
+      const EXTERNAL_SOURCE = { warehouse_id:null, warehouse_name:'External Supplier' };
+      const EXTERNAL_DEST = { warehouse_id:null, warehouse_name:'External Customer' };
+      const PRODUCTION_FLOOR = { warehouse_id:'WRH-PROD', warehouse_name:'Production Floor' };
+
+      const PRODUCTS = [
+        { product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', unit:'KG' },
+        { product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar', unit:'KG' },
+        { product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil', unit:'L' },
+        { product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder', unit:'KG' },
+        { product_id:'PRD-0005', product_code:'RM-CCO-001', product_name:'Cocoa Powder', unit:'KG' },
+        { product_id:'PRD-0006', product_code:'FG-CHB-001', product_name:'Chocolate Biscuit', unit:'PCS' },
+        { product_id:'PRD-0007', product_code:'FG-MKB-001', product_name:'Milk Biscuit', unit:'PCS' },
+        { product_id:'PRD-0008', product_code:'FG-CNB-001', product_name:'Coconut Biscuit', unit:'PCS' },
+        { product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper', unit:'ROLL' },
+        { product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box', unit:'CTN' },
+        { product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels', unit:'PCS' }
+      ];
+
+      const WAREHOUSES = [
+        { warehouse_id:'WRH-0001', warehouse_name:'Main Raw Material Store' },
+        { warehouse_id:'WRH-0002', warehouse_name:'Finished Goods Warehouse' },
+        { warehouse_id:'WRH-0003', warehouse_name:'Packaging Store' },
+        { warehouse_id:'WRH-0004', warehouse_name:'Cold Storage Unit' },
+        { warehouse_id:'WRH-0005', warehouse_name:'Dispatch Warehouse' }
+      ];
+
+      let movements = [
+        { movement_id:'MOV-0001', product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', unit:'KG', movement_type:'purchase_receiving', source_warehouse_id:null, source_warehouse_name:'External Supplier', destination_warehouse_id:'WRH-0001', destination_warehouse_name:'Main Raw Material Store', quantity:500, reference_no:'PO-2026-0142', status:'completed', created_by:'Usman Khalid', created_at:'2026-06-15' },
+        { movement_id:'MOV-0002', product_id:'PRD-0001', product_code:'RM-FLR-001', product_name:'Flour', unit:'KG', movement_type:'production_consumption', source_warehouse_id:'WRH-0001', source_warehouse_name:'Main Raw Material Store', destination_warehouse_id:'WRH-PROD', destination_warehouse_name:'Production Floor', quantity:120, reference_no:'PRO-2026-0088', status:'completed', created_by:'Usman Khalid', created_at:'2026-06-10' },
+        { movement_id:'MOV-0003', product_id:'PRD-0006', product_code:'FG-CHB-001', product_name:'Chocolate Biscuit', unit:'PCS', movement_type:'production_return', source_warehouse_id:'WRH-PROD', source_warehouse_name:'Production Floor', destination_warehouse_id:'WRH-0002', destination_warehouse_name:'Finished Goods Warehouse', quantity:320, reference_no:'PRO-2026-0095', status:'completed', created_by:'Admin', created_at:'2026-06-18' },
+        { movement_id:'MOV-0004', product_id:'PRD-0006', product_code:'FG-CHB-001', product_name:'Chocolate Biscuit', unit:'PCS', movement_type:'sales_dispatch', source_warehouse_id:'WRH-0002', source_warehouse_name:'Finished Goods Warehouse', destination_warehouse_id:null, destination_warehouse_name:'External Customer', quantity:180, reference_no:'SO-2026-0310', status:'completed', created_by:'Sara Khan', created_at:'2026-06-12' },
+        { movement_id:'MOV-0005', product_id:'PRD-0008', product_code:'FG-CNB-001', product_name:'Coconut Biscuit', unit:'PCS', movement_type:'transfer', source_warehouse_id:'WRH-0002', source_warehouse_name:'Finished Goods Warehouse', destination_warehouse_id:'WRH-0005', destination_warehouse_name:'Dispatch Warehouse', quantity:300, reference_no:'TRF-2026-0041', status:'completed', created_by:'Ali Raza', created_at:'2026-06-17' },
+        { movement_id:'MOV-0006', product_id:'PRD-0002', product_code:'RM-SGR-001', product_name:'Sugar', unit:'KG', movement_type:'stock_in', source_warehouse_id:null, source_warehouse_name:'External Supplier', destination_warehouse_id:'WRH-0001', destination_warehouse_name:'Main Raw Material Store', quantity:200, reference_no:'GRN-2026-0201', status:'completed', created_by:'Admin', created_at:'2026-06-16' },
+        { movement_id:'MOV-0007', product_id:'PRD-0009', product_code:'PK-PWR-001', product_name:'Plastic Wrapper', unit:'ROLL', movement_type:'stock_out', source_warehouse_id:'WRH-0003', source_warehouse_name:'Packaging Store', destination_warehouse_id:null, destination_warehouse_name:'Scrap Disposal', quantity:5, reference_no:'OUT-2026-0088', status:'cancelled', created_by:'Hamza Siddiqui', created_at:'2026-06-11' },
+        { movement_id:'MOV-0008', product_id:'PRD-0003', product_code:'RM-PLO-001', product_name:'Palm Oil', unit:'L', movement_type:'production_consumption', source_warehouse_id:'WRH-0001', source_warehouse_name:'Main Raw Material Store', destination_warehouse_id:'WRH-PROD', destination_warehouse_name:'Production Floor', quantity:35, reference_no:'PRO-2026-0091', status:'completed', created_by:'Usman Khalid', created_at:'2026-06-16' },
+        { movement_id:'MOV-0009', product_id:'PRD-0010', product_code:'PK-CTN-001', product_name:'Carton Box', unit:'CTN', movement_type:'purchase_receiving', source_warehouse_id:null, source_warehouse_name:'External Supplier', destination_warehouse_id:'WRH-0003', destination_warehouse_name:'Packaging Store', quantity:150, reference_no:'PO-2026-0155', status:'pending', created_by:'Admin', created_at:'2026-06-19' },
+        { movement_id:'MOV-0010', product_id:'PRD-0007', product_code:'FG-MKB-001', product_name:'Milk Biscuit', unit:'PCS', movement_type:'transfer', source_warehouse_id:'WRH-0002', source_warehouse_name:'Finished Goods Warehouse', destination_warehouse_id:'WRH-0005', destination_warehouse_name:'Dispatch Warehouse', quantity:120, reference_no:'TRF-2026-0045', status:'pending', created_by:'Sara Khan', created_at:'2026-06-19' },
+        { movement_id:'MOV-0011', product_id:'PRD-0004', product_code:'RM-MPD-001', product_name:'Milk Powder', unit:'KG', movement_type:'stock_in', source_warehouse_id:null, source_warehouse_name:'External Supplier', destination_warehouse_id:'WRH-0004', destination_warehouse_name:'Cold Storage Unit', quantity:80, reference_no:'GRN-2026-0210', status:'completed', created_by:'Admin', created_at:'2026-06-19' },
+        { movement_id:'MOV-0012', product_id:'PRD-0011', product_code:'PK-LBL-001', product_name:'Product Labels', unit:'PCS', movement_type:'stock_out', source_warehouse_id:'WRH-0003', source_warehouse_name:'Packaging Store', destination_warehouse_id:'WRH-PROD', destination_warehouse_name:'Production Floor', quantity:500, reference_no:'ISS-2026-0033', status:'completed', created_by:'Ali Raza', created_at:'2026-06-14' }
+      ];
+
+      const $tableEl = $('#movementsTable');
+      const $tbody = $tableEl.find('tbody');
+      const todayStr = new Date().toISOString().slice(0, 10);
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+
+      const getMovementType = (value) => MOVEMENT_TYPES.find(t => t.value === value);
+      const movementTypeLabel = (value) => getMovementType(value)?.label || value;
+
+      const movementTypeBadge = (type) => {
+        const map = {
+          stock_in: 'badge-stock-in',
+          stock_out: 'badge-stock-out',
+          transfer: 'badge-transfer',
+          purchase_receiving: 'badge-purchase',
+          production_consumption: 'badge-production',
+          production_return: 'badge-production',
+          sales_dispatch: 'badge-sales'
+        };
+        const cls = map[type] || 'badge-stock-in';
+        return `<span class="badge mov-badge ${cls}">${escapeHtml(movementTypeLabel(type))}</span>`;
+      };
+
+      const statusBadge = (status) => {
+        const map = {
+          pending: '<span class="badge status-badge badge-pending">Pending</span>',
+          completed: '<span class="badge status-badge badge-completed">Completed</span>',
+          cancelled: '<span class="badge status-badge badge-cancelled">Cancelled</span>'
+        };
+        return map[status] || map.pending;
+      };
+
+      const isStockInKpi = (type) => {
+        const t = getMovementType(type);
+        return t && (t.value === 'stock_in' || t.category === 'in');
+      };
+
+      const isStockOutKpi = (type) => {
+        const t = getMovementType(type);
+        return t && (t.value === 'stock_out' || t.category === 'out');
+      };
+
+      const getProduct = (id) => PRODUCTS.find(p => p.product_id === id);
+      const getWarehouse = (id) => WAREHOUSES.find(w => w.warehouse_id === id);
+
+      const warehouseCell = (name) => {
+        if (!name || name === '—') return '—';
+        return `<span class="warehouse-name">${escapeHtml(name)}</span>`;
+      };
+
+      const populateSelects = () => {
+        const productOptions = PRODUCTS.map(p =>
+          `<option value="${escapeHtml(p.product_id)}">${escapeHtml(p.product_code)} — ${escapeHtml(p.product_name)}</option>`
+        ).join('');
+
+        const typeOptions = MOVEMENT_TYPES.map(t =>
+          `<option value="${escapeHtml(t.value)}">${escapeHtml(t.label)}</option>`
+        ).join('');
+
+        const warehouseOptions = [
+          `<option value="">— External / N/A —</option>`,
+          `<option value="${PRODUCTION_FLOOR.warehouse_id}">${escapeHtml(PRODUCTION_FLOOR.warehouse_name)}</option>`,
+          ...WAREHOUSES.map(w => `<option value="${escapeHtml(w.warehouse_id)}">${escapeHtml(w.warehouse_name)}</option>`)
+        ].join('');
+
+        document.getElementById('addProduct').innerHTML = productOptions;
+        document.getElementById('addMovementType').innerHTML = typeOptions;
+        document.getElementById('addSourceWarehouse').innerHTML = warehouseOptions;
+        document.getElementById('addDestWarehouse').innerHTML = warehouseOptions;
+      };
+
+      const resolveWarehouse = (id, fallbackName) => {
+        if (!id) return { warehouse_id:null, warehouse_name: fallbackName || '—' };
+        if (id === PRODUCTION_FLOOR.warehouse_id) return PRODUCTION_FLOOR;
+        const wh = getWarehouse(id);
+        return wh || { warehouse_id:id, warehouse_name: fallbackName || id };
+      };
+
+      const defaultRouteForType = (type) => {
+        switch (type) {
+          case 'stock_in':
+          case 'purchase_receiving':
+            return { source: EXTERNAL_SOURCE, destRequired: true };
+          case 'production_return':
+            return { source: PRODUCTION_FLOOR, destRequired: true };
+          case 'stock_out':
+          case 'sales_dispatch':
+            return { sourceRequired: true, dest: EXTERNAL_DEST };
+          case 'production_consumption':
+            return { sourceRequired: true, dest: PRODUCTION_FLOOR };
+          case 'transfer':
+            return { sourceRequired: true, destRequired: true };
+          default:
+            return {};
+        }
+      };
+
+      const syncWarehouseFields = () => {
+        const type = document.getElementById('addMovementType').value;
+        const route = defaultRouteForType(type);
+        const sourceWrap = document.getElementById('addSourceWrap');
+        const destWrap = document.getElementById('addDestWrap');
+        const sourceEl = document.getElementById('addSourceWarehouse');
+        const destEl = document.getElementById('addDestWarehouse');
+
+        sourceWrap.style.display = route.source ? 'none' : 'block';
+        destWrap.style.display = route.dest ? 'none' : 'block';
+
+        sourceEl.required = !!route.sourceRequired;
+        destEl.required = !!route.destRequired;
+
+        if (route.source) sourceEl.value = '';
+        if (route.dest) destEl.value = '';
+      };
+
+      const renderKPIs = () => {
+        const total = movements.length;
+        const stockIn = movements.filter(m => isStockInKpi(m.movement_type)).length;
+        const stockOut = movements.filter(m => isStockOutKpi(m.movement_type)).length;
+        const transfers = movements.filter(m => m.movement_type === 'transfer').length;
+
+        $('#kpiTotalMovements').text(total);
+        $('#kpiStockIn').text(stockIn);
+        $('#kpiStockOut').text(stockOut);
+        $('#kpiTransfers').text(transfers);
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const m of movements){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(m.movement_id)}</td>
+              <td class="fw-semibold">${escapeHtml(m.product_code)}</td>
+              <td>${escapeHtml(m.product_name)}</td>
+              <td>${movementTypeBadge(m.movement_type)}</td>
+              <td>${warehouseCell(m.source_warehouse_name)}</td>
+              <td>${warehouseCell(m.destination_warehouse_name)}</td>
+              <td class="fw-bold">${escapeHtml(m.quantity)}</td>
+              <td>${escapeHtml(m.reference_no)}</td>
+              <td>${escapeHtml(m.created_at)}</td>
+              <td>${escapeHtml(m.created_by)}</td>
+              <td>${statusBadge(m.status)}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(m.movement_id)}"><i class="fa-solid fa-eye me-2"></i>View Movement</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="details" data-id="${escapeHtml(m.movement_id)}"><i class="fa-solid fa-file-lines me-2"></i>Movement Details</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[8, 'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0, 2, 3, 10] },
+          { responsivePriority: 2, targets: [1, 4, 5, 6, 8] },
+          { responsivePriority: 3, targets: [7, 9] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+      const refreshTable = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const getMovement = (id) => movements.find(m => m.movement_id === id);
+
+      const fillViewModal = (m) => {
+        document.getElementById('viewMovId').textContent = m.movement_id;
+        document.getElementById('viewMovDate').textContent = m.created_at;
+        document.getElementById('viewMovTypeContainer').innerHTML = movementTypeBadge(m.movement_type);
+        document.getElementById('viewMovQuantity').textContent = `${m.quantity} ${m.unit || ''}`.trim();
+        document.getElementById('viewMovStatusContainer').innerHTML = statusBadge(m.status);
+        document.getElementById('viewMovCreatedBy').textContent = m.created_by;
+        document.getElementById('viewMovProductCode').textContent = m.product_code;
+        document.getElementById('viewMovProductName').textContent = m.product_name;
+        document.getElementById('viewMovSource').textContent = m.source_warehouse_name || '—';
+        document.getElementById('viewMovDestination').textContent = m.destination_warehouse_name || '—';
+        document.getElementById('viewMovReference').textContent = m.reference_no;
+      };
+
+      const buildAuditTrail = (m) => {
+        const events = [
+          { event:'Movement Created', timestamp:`${m.created_at} 09:00`, user:m.created_by, notes:`Reference ${m.reference_no} registered.` },
+          { event:'Warehouse Route Set', timestamp:`${m.created_at} 09:05`, user:m.created_by, notes:`${m.source_warehouse_name || '—'} → ${m.destination_warehouse_name || '—'}` },
+          { event:`Status: ${movementTypeLabel(m.movement_type)}`, timestamp:`${m.created_at} 09:10`, user:'System', notes:`Quantity ${m.quantity} ${m.unit || ''}`.trim() }
+        ];
+
+        if (m.status === 'completed') {
+          events.push({ event:'Movement Completed', timestamp:`${m.created_at} 14:30`, user:m.created_by, notes:'Stock balances updated in inventory ledger.' });
+        } else if (m.status === 'pending') {
+          events.push({ event:'Awaiting Confirmation', timestamp:`${m.created_at} 10:00`, user:'System', notes:'Movement pending warehouse verification.' });
+        } else if (m.status === 'cancelled') {
+          events.push({ event:'Movement Cancelled', timestamp:`${m.created_at} 11:15`, user:m.created_by, notes:'Document voided — no stock impact applied.' });
+        }
+
+        return events;
+      };
+
+      const fillDetailsModal = (m) => {
+        document.getElementById('detMovId').textContent = m.movement_id;
+        document.getElementById('detReference').textContent = m.reference_no;
+        document.getElementById('detDate').textContent = m.created_at;
+        document.getElementById('detCreatedBy').textContent = m.created_by;
+        document.getElementById('detStatusContainer').innerHTML = statusBadge(m.status);
+        document.getElementById('detTypeContainer').innerHTML = movementTypeBadge(m.movement_type);
+        document.getElementById('detProductId').textContent = m.product_id;
+        document.getElementById('detProductCode').textContent = m.product_code;
+        document.getElementById('detProductName').textContent = m.product_name;
+        document.getElementById('detUnit').textContent = m.unit || '—';
+        document.getElementById('detQuantity').textContent = `${m.quantity} ${m.unit || ''}`.trim();
+        document.getElementById('detSource').textContent = m.source_warehouse_name || '—';
+        document.getElementById('detSourceId').textContent = m.source_warehouse_id ? `ID: ${m.source_warehouse_id}` : 'External / N/A';
+        document.getElementById('detDestination').textContent = m.destination_warehouse_name || '—';
+        document.getElementById('detDestinationId').textContent = m.destination_warehouse_id ? `ID: ${m.destination_warehouse_id}` : 'External / N/A';
+
+        document.getElementById('detAuditBody').innerHTML = buildAuditTrail(m).map(e => `
+          <tr>
+            <td class="fw-semibold">${escapeHtml(e.event)}</td>
+            <td>${escapeHtml(e.timestamp)}</td>
+            <td>${escapeHtml(e.user)}</td>
+            <td>${escapeHtml(e.notes)}</td>
+          </tr>
+        `).join('');
+      };
+
+      const buildRecordFromForm = () => {
+        const productId = document.getElementById('addProduct').value;
+        const movementType = document.getElementById('addMovementType').value;
+        const sourceId = document.getElementById('addSourceWarehouse').value;
+        const destId = document.getElementById('addDestWarehouse').value;
+        const quantity = parseInt(document.getElementById('addQuantity').value, 10);
+        const referenceNo = document.getElementById('addReferenceNo').value.trim();
+        const status = document.getElementById('addStatus').value;
+        const createdAt = document.getElementById('addMovementDate').value;
+
+        if (!productId || !movementType || !referenceNo || !status || !createdAt) return null;
+        if (Number.isNaN(quantity) || quantity <= 0) return null;
+
+        const product = getProduct(productId);
+        if (!product) return null;
+
+        const route = defaultRouteForType(movementType);
+        let source = route.source || resolveWarehouse(sourceId, EXTERNAL_SOURCE.warehouse_name);
+        let dest = route.dest || resolveWarehouse(destId, EXTERNAL_DEST.warehouse_name);
+
+        if (route.sourceRequired && !sourceId) return null;
+        if (route.destRequired && !destId) return null;
+        if (!route.source && sourceId) source = resolveWarehouse(sourceId);
+        if (!route.dest && destId) dest = resolveWarehouse(destId);
+
+        return {
+          product_id: productId,
+          product_code: product.product_code,
+          product_name: product.product_name,
+          unit: product.unit,
+          movement_type: movementType,
+          source_warehouse_id: source.warehouse_id,
+          source_warehouse_name: source.warehouse_name,
+          destination_warehouse_id: dest.warehouse_id,
+          destination_warehouse_name: dest.warehouse_name,
+          quantity,
+          reference_no: referenceNo,
+          status,
+          created_by: 'Admin',
+          created_at: createdAt
+        };
+      };
+
+      populateSelects();
+      document.getElementById('addMovementDate').value = todayStr;
+      document.getElementById('addMovementType').addEventListener('change', syncWarehouseFields);
+
+      document.getElementById('addMovementModal').addEventListener('show.bs.modal', () => {
+        document.getElementById('addMovementForm').reset();
+        document.getElementById('addMovementDate').value = todayStr;
+        document.getElementById('addMovementType').value = 'stock_in';
+        document.getElementById('addStatus').value = 'completed';
+        syncWarehouseFields();
+      });
+
+      $('#btnRefresh').on('click', () => refreshTable());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('addMovementForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const record = buildRecordFromForm();
+        if (!record) return;
+
+        const nextNum = movements.length
+          ? Math.max(...movements.map(x => parseInt(String(x.movement_id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        movements.push({
+          movement_id: `MOV-${String(nextNum).padStart(4,'0')}`,
+          ...record
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('addMovementModal'))?.hide();
+        refreshTable();
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const m = getMovement(id);
+        if (!m) return;
+
+        if (action === 'view'){
+          fillViewModal(m);
+          new bootstrap.Modal(document.getElementById('viewMovementModal')).show();
+          return;
+        }
+
+        if (action === 'details'){
+          fillDetailsModal(m);
+          new bootstrap.Modal(document.getElementById('movementDetailsModal')).show();
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        syncWarehouseFields();
+        refreshTable();
+      });
+    })();
+  </script>
+
+</body>
+</html>

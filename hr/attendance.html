@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance Management</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/css/adminlte.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars/css/OverlayScrollbars.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/css/responsive.bootstrap5.min.css" />
+
+  <style>
+    :root{
+      --erp-primary:#0b2a4a;
+      --erp-success:#198754;
+      --erp-warning:#fd7e14;
+      --erp-danger:#dc3545;
+      --erp-info:#0d6efd;
+      --erp-purple:#6f42c1;
+      --erp-dark-sidebar:#0b2a4a;
+    }
+
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 0%, rgba(11,42,74,.12), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(25,135,84,.10), transparent 55%),
+        #f8fafc;
+    }
+
+    .main-sidebar{ background:var(--erp-dark-sidebar) !important; }
+    .main-sidebar .brand-link{ background:linear-gradient(135deg, rgba(11,42,74,.95), rgba(11,42,74,.75)); }
+    .main-sidebar .nav-treeview{ background:rgba(255,255,255,.03); }
+
+    .erp-card{
+      border-radius:1rem; border:1px solid rgba(11,42,74,.10);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.92);
+    }
+
+    .page-title{ color:var(--erp-primary); font-weight:950; letter-spacing:-0.01em; }
+    .section-ribbon{ height:6px;border-radius:999px;background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.9)); width:120px; }
+
+    .panel-title{ display:flex; align-items:center; gap:.55rem; font-weight:900; line-height:1.2; }
+
+    .kpi-card{
+      border-radius:.95rem; border:1px solid rgba(11,42,74,.12);
+      box-shadow:0 10px 24px rgba(11,42,74,.06); overflow:hidden; background:rgba(255,255,255,.95);
+    }
+    .kpi-top{ height:10px; background:linear-gradient(90deg, rgba(11,42,74,1), rgba(25,135,84,.85)); }
+    .kpi-value{ font-size:2.05rem; font-weight:900; letter-spacing:-0.02em; color:var(--erp-primary); }
+    .kpi-label{ color:rgba(0,0,0,.62); font-weight:650; }
+
+    .summary-pill{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.75rem 1rem; border-radius:.85rem;
+      border:1px solid rgba(11,42,74,.10); background:rgba(11,42,74,.03);
+    }
+
+    .status-badge{ border:1px solid transparent; font-weight:750; white-space:nowrap; }
+    .badge-present{ background:rgba(25,135,84,.12); color:var(--erp-success); border-color:rgba(25,135,84,.25); }
+    .badge-absent{ background:rgba(220,53,69,.12); color:var(--erp-danger); border-color:rgba(220,53,69,.25); }
+    .badge-late{ background:rgba(253,126,20,.12); color:var(--erp-warning); border-color:rgba(253,126,20,.25); }
+    .badge-half-day{ background:rgba(13,110,253,.12); color:var(--erp-info); border-color:rgba(13,110,253,.25); }
+    .badge-on-leave-att{ background:rgba(111,66,193,.12); color:var(--erp-purple); border-color:rgba(111,66,193,.25); }
+
+    .table thead th{
+      font-weight:850; color:rgba(0,0,0,.75);
+      background:rgba(11,42,74,.04); border-bottom-width:1px;
+    }
+    .table tbody td{ vertical-align:middle; }
+    .table.dataTable{ width:100% !important; }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{ padding-top:.1rem; }
+    .dataTables_wrapper .dataTables_filter{ float:none !important; text-align:right; }
+
+    @media (max-width:575.98px){
+      .dataTables_wrapper .dataTables_filter{ text-align:left; }
+      .dataTables_wrapper .dt-buttons{ display:flex; flex-wrap:wrap; gap:.35rem; }
+    }
+
+    .action-btn{ cursor:pointer; border-radius:.7rem; padding:.35rem .5rem; }
+    .btn-erp{ background:var(--erp-primary); color:#fff; border-color:var(--erp-primary); }
+    .btn-erp:hover{ background:#0e3a64; border-color:#0e3a64; color:#fff; }
+
+    .modal-header.bg-erp{
+      background:linear-gradient(90deg, rgba(11,42,74,.95), rgba(25,135,84,.85)); color:#fff;
+    }
+
+    [data-bs-theme="dark"] .erp-card,
+    [data-bs-theme="dark"] .kpi-card{
+      background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.10) !important; box-shadow:none;
+    }
+    [data-bs-theme="dark"] .kpi-label{ color:rgba(255,255,255,.65); }
+    [data-bs-theme="dark"] .table thead th{ color:rgba(255,255,255,.88); background:rgba(255,255,255,.06); }
+    [data-bs-theme="dark"] .status-badge{ color:rgba(255,255,255,.92); }
+    [data-bs-theme="dark"] .summary-pill{ background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.10); }
+  </style>
+</head>
+
+<body class="layout-fixed sidebar-expand-lg">
+  <div class="app-wrapper">
+
+    <header class="app-header">
+      <nav class="main-header navbar navbar-expand navbar-white border-bottom">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+              </a>
+            </li>
+          </ul>
+
+          <div class="d-flex align-items-center gap-2 ms-3">
+            <span class="brand-link d-inline-flex align-items-center justify-content-center" style="width:40px;height:40px;border-radius:14px;">
+              <i class="fa-solid fa-calendar-check text-white"></i>
+            </span>
+            <div>
+              <div class="fw-bold" style="line-height:1.1; color:var(--erp-primary);">Attendance Management</div>
+              <div class="text-muted small" style="margin-top:-1px;">Daily Logs • Summaries • Compliance</div>
+            </div>
+          </div>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item dropdown">
+              <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" aria-label="User profile">
+                <i class="fa-regular fa-user"></i>
+                <span class="ms-2 d-none d-md-inline">Admin</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-header"><strong>Admin</strong></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <aside class="app-sidebar">
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="attendance.html" class="brand-link text-center d-flex align-items-center justify-content-center gap-2" style="text-decoration:none;">
+          <span class="brand-text fw-bold fs-4" style="color:#fff; letter-spacing:.2px;">Baryal ERP</span>
+        </a>
+        <div class="sidebar">
+          <nav class="mt-2" aria-label="Primary navigation">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+              <li class="nav-item"><a href="../dashboard.html" class="nav-link"><i class="nav-icon fa-solid fa-gauge-high"></i><p>Dashboard</p></a></li>
+              <li class="nav-item"><a href="../users/roles.html" class="nav-link"><i class="nav-icon fa-solid fa-user-tag"></i><p>Roles</p></a></li>
+              <li class="nav-item"><a href="../users/permissions.html" class="nav-link"><i class="nav-icon fa-solid fa-key"></i><p>Permissions</p></a></li>
+              <li class="nav-item"><a href="../users/users.html" class="nav-link"><i class="nav-icon fa-solid fa-users"></i><p>Users</p></a></li>
+            </ul>
+
+            <ul class="nav nav-pills nav-sidebar flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false" style="margin-top:0.25rem;">
+              <li class="nav-item has-treeview menu-open">
+                <a href="#" class="nav-link active">
+                  <i class="nav-icon fa-solid fa-people-group"></i><p>HR Management</p>
+                  <i class="right fa-solid fa-angle-left"></i>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item"><a href="departments.html" class="nav-link"><i class="fa-regular fa-building me-2"></i><p>Departments</p></a></li>
+                  <li class="nav-item"><a href="designations.html" class="nav-link"><i class="fa-solid fa-id-badge me-2"></i><p>Designations</p></a></li>
+                  <li class="nav-item"><a href="employees.html" class="nav-link"><i class="fa-solid fa-user me-2"></i><p>Employees</p></a></li>
+                  <li class="nav-item"><a href="attendance.html" class="nav-link active"><i class="fa-solid fa-calendar-check me-2"></i><p>Attendance</p></a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+    </aside>
+
+    <main class="app-main">
+      <section class="content-header pt-4 pb-3">
+        <div class="container-fluid">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="section-ribbon"></div>
+                <h1 class="m-0 page-title">Attendance Management</h1>
+              </div>
+              <nav aria-label="breadcrumb" class="mt-2">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                  <li class="breadcrumb-item"><a href="employees.html">HR</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Attendance</li>
+                </ol>
+              </nav>
+              <div class="text-muted small mt-2">Track daily attendance, working hours, and department-wise presence.</div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn" type="button" id="btnRefresh" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Refresh
+              </button>
+              <button class="btn btn-erp" type="button" id="btnAddAttendance" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
+                <i class="fa-solid fa-plus me-2"></i>Add Attendance
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="container-fluid">
+
+          <!-- Statistics Cards -->
+          <div class="row g-3 mb-1">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Total Employees</div>
+                      <div class="kpi-value" id="kpiTotalEmployees">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(11,42,74,.08);border:1px solid rgba(11,42,74,.12);">
+                      <i class="fa-solid fa-users" style="color:var(--erp-primary);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(25,135,84,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Present Today</div>
+                      <div class="kpi-value" id="kpiPresentToday">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(25,135,84,.10);border:1px solid rgba(25,135,84,.20);">
+                      <i class="fa-solid fa-user-check" style="color:var(--erp-success);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(220,53,69,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Absent Today</div>
+                      <div class="kpi-value" id="kpiAbsentToday">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(220,53,69,.10);border:1px solid rgba(220,53,69,.20);">
+                      <i class="fa-solid fa-user-xmark" style="color:var(--erp-danger);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="kpi-card">
+                <div class="kpi-top" style="background:linear-gradient(90deg, rgba(253,126,20,1), rgba(11,42,74,.85));"></div>
+                <div class="card-body">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                      <div class="kpi-label">Late Arrivals</div>
+                      <div class="kpi-value" id="kpiLateToday">0</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center" style="width:44px;height:44px;border-radius:14px;background:rgba(253,126,20,.10);border:1px solid rgba(253,126,20,.20);">
+                      <i class="fa-solid fa-clock" style="color:var(--erp-warning);"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance Summary Section -->
+          <div class="row g-3 mt-1">
+            <div class="col-12 col-xl-5">
+              <div class="card erp-card h-100">
+                <div class="card-header" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-chart-simple text-primary"></i>
+                    <span>Daily Attendance Summary</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="text-muted small fw-semibold"><i class="fa-regular fa-calendar me-2"></i>Summary Date</div>
+                    <div class="fw-bold" id="summaryDateLabel">—</div>
+                  </div>
+                  <div class="row g-2" id="dailySummaryContainer"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-xl-7">
+              <div class="card erp-card h-100">
+                <div class="card-header" style="background:rgba(11,42,74,.04);">
+                  <div class="panel-title">
+                    <i class="fa-solid fa-building text-primary"></i>
+                    <span>Department-wise Attendance Summary</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th>Department</th>
+                          <th class="text-center">Total</th>
+                          <th class="text-center">Present</th>
+                          <th class="text-center">Absent</th>
+                          <th class="text-center">Late</th>
+                          <th class="text-center">Half Day</th>
+                          <th class="text-center">On Leave</th>
+                        </tr>
+                      </thead>
+                      <tbody id="deptSummaryBody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance DataTable -->
+          <div class="card erp-card mt-3">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="background:rgba(11,42,74,.04);">
+              <div class="panel-title">
+                <i class="fa-solid fa-calendar-check text-primary"></i>
+                <span>Attendance DataTable</span>
+              </div>
+              <div class="text-muted small fw-semibold">
+                <i class="fa-solid fa-filter me-1"></i>
+                Search • Sorting • Pagination • Responsive • Excel/PDF/Print
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="table-responsive">
+                <table id="attendanceTable" class="table table-striped table-hover w-100 nowrap align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:120px;">Attendance ID</th>
+                      <th style="width:110px;">Employee ID</th>
+                      <th>Employee Name</th>
+                      <th style="width:170px;">Department</th>
+                      <th style="width:180px;">Designation</th>
+                      <th style="width:120px;">Date</th>
+                      <th style="width:110px;">Check In Time</th>
+                      <th style="width:120px;">Check Out Time</th>
+                      <th style="width:120px;">Working Hours</th>
+                      <th style="width:110px;">Status</th>
+                      <th>Remarks</th>
+                      <th style="width:210px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"></footer>
+  </div>
+
+  <!-- Add Attendance Modal -->
+  <div class="modal fade" id="addAttendanceModal" tabindex="-1" aria-hidden="true" aria-labelledby="addAttendanceModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="addAttendanceModalLabel"><i class="fa-solid fa-plus me-2"></i>Add Attendance</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="addAttendanceForm" autocomplete="off">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addAttEmployee" name="employeeId" required>
+                    <option value="" selected disabled>Select employee</option>
+                  </select>
+                  <label for="addAttEmployee"><i class="fa-solid fa-user me-2"></i>Employee</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="addAttDepartment" name="department" placeholder="Department" readonly />
+                  <label for="addAttDepartment"><i class="fa-solid fa-building me-2"></i>Department</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="addAttDate" name="date" required />
+                  <label for="addAttDate"><i class="fa-regular fa-calendar me-2"></i>Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="addAttStatus" name="status" required>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="late">Late</option>
+                    <option value="half-day">Half Day</option>
+                    <option value="on-leave">On Leave</option>
+                  </select>
+                  <label for="addAttStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="time" class="form-control" id="addAttCheckIn" name="checkIn" />
+                  <label for="addAttCheckIn"><i class="fa-solid fa-right-to-bracket me-2"></i>Check In Time</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="time" class="form-control" id="addAttCheckOut" name="checkOut" />
+                  <label for="addAttCheckOut"><i class="fa-solid fa-right-from-bracket me-2"></i>Check Out Time</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="addAttRemarks" name="remarks" placeholder="Remarks" style="height:90px;"></textarea>
+                  <label for="addAttRemarks"><i class="fa-solid fa-comment-dots me-2"></i>Remarks</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                  <i class="fa-solid fa-shield me-2"></i>UI-only demo: records are kept in-memory. Working hours are auto-calculated when check-in/out are provided.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-floppy-disk me-2"></i>Save Attendance</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Attendance Modal -->
+  <div class="modal fade" id="editAttendanceModal" tabindex="-1" aria-hidden="true" aria-labelledby="editAttendanceModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="editAttendanceModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Attendance</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="editAttendanceForm" autocomplete="off">
+          <input type="hidden" id="editAttIdHidden" />
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editAttEmployeeName" readonly />
+                  <label for="editAttEmployeeName"><i class="fa-solid fa-user me-2"></i>Employee</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="text" class="form-control" id="editAttDepartment" readonly />
+                  <label for="editAttDepartment"><i class="fa-solid fa-building me-2"></i>Department</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="date" class="form-control" id="editAttDate" required />
+                  <label for="editAttDate"><i class="fa-regular fa-calendar me-2"></i>Date</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="editAttStatus" required>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="late">Late</option>
+                    <option value="half-day">Half Day</option>
+                    <option value="on-leave">On Leave</option>
+                  </select>
+                  <label for="editAttStatus"><i class="fa-solid fa-circle-info me-2"></i>Status</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="time" class="form-control" id="editAttCheckIn" />
+                  <label for="editAttCheckIn"><i class="fa-solid fa-right-to-bracket me-2"></i>Check In Time</label>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <div class="form-floating">
+                  <input type="time" class="form-control" id="editAttCheckOut" />
+                  <label for="editAttCheckOut"><i class="fa-solid fa-right-from-bracket me-2"></i>Check Out Time</label>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="editAttRemarks" style="height:90px;"></textarea>
+                  <label for="editAttRemarks"><i class="fa-solid fa-comment-dots me-2"></i>Remarks</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-erp"><i class="fa-solid fa-save me-2"></i>Update Attendance</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Attendance Modal -->
+  <div class="modal fade" id="viewAttendanceModal" tabindex="-1" aria-hidden="true" aria-labelledby="viewAttendanceModalLabel">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp">
+          <h5 class="modal-title" id="viewAttendanceModalLabel"><i class="fa-solid fa-eye me-2"></i>View Attendance</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <div class="erp-card" style="background:rgba(11,42,74,.03); border-color:rgba(11,42,74,.12);">
+                <div class="p-4">
+                  <div class="fw-bold fs-5" id="viewAttEmployeeName">—</div>
+                  <div class="text-muted small" id="viewAttEmployeeId">—</div>
+                  <div class="text-muted small" id="viewAttAttendanceId">—</div>
+                  <div class="mt-3" id="viewAttStatusContainer"></div>
+
+                  <div class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-building me-2"></i>Department</div>
+                      <div class="fw-semibold" id="viewAttDepartment">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-id-badge me-2"></i>Designation</div>
+                      <div class="fw-semibold" id="viewAttDesignation">—</div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      <div class="text-muted small fw-semibold"><i class="fa-regular fa-calendar me-2"></i>Date</div>
+                      <div class="fw-semibold" id="viewAttDate">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+              <div class="erp-card">
+                <div class="p-4">
+                  <div class="fw-bold mb-3"><i class="fa-solid fa-clock me-2 text-primary"></i>Time & Remarks</div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-right-to-bracket me-2"></i>Check In</div>
+                      <div class="fw-semibold" id="viewAttCheckIn">—</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-right-from-bracket me-2"></i>Check Out</div>
+                      <div class="fw-semibold" id="viewAttCheckOut">—</div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-hourglass-half me-2"></i>Working Hours</div>
+                      <div class="fw-semibold" id="viewAttWorkingHours">—</div>
+                    </div>
+                    <div class="col-12">
+                      <div class="text-muted small fw-semibold"><i class="fa-solid fa-comment-dots me-2"></i>Remarks</div>
+                      <div class="fw-semibold" id="viewAttRemarks">—</div>
+                    </div>
+                  </div>
+
+                  <hr class="my-4" style="border-color:rgba(11,42,74,.12);" />
+
+                  <div class="alert" style="background:rgba(11,42,74,.05); border:1px solid rgba(11,42,74,.12); color:var(--erp-primary); margin-bottom:0;">
+                    <i class="fa-solid fa-shield-halved me-2"></i>Demo view: attendance record is read-only.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Attendance Modal -->
+  <div class="modal fade" id="deleteAttendanceModal" tabindex="-1" aria-hidden="true" aria-labelledby="deleteAttendanceModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-erp" style="background:linear-gradient(90deg, rgba(220,53,69,.95), rgba(11,42,74,.85));">
+          <h5 class="modal-title" id="deleteAttendanceModalLabel"><i class="fa-solid fa-trash me-2"></i>Delete Attendance</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="deleteAttendanceForm">
+          <input type="hidden" id="deleteAttIdHidden" />
+          <div class="modal-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-danger" style="font-size:1.8rem; line-height:1;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <div class="fw-bold" id="deleteAttTitle">Are you sure?</div>
+                <div class="text-muted small mt-1" id="deleteAttMessage">This action cannot be undone.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" style="background:rgba(11,42,74,.08); color:var(--erp-primary); border-color:rgba(11,42,74,.12);" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-2"></i>Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars/js/OverlayScrollbars.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0/dist/js/adminlte.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.10/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.10/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-buttons@2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+  <script>
+    (function(){
+      const employeeRoster = [
+        { id:'EMP-0001', fullName:'Amina Rahman', department:'HR & Administration', designation:'HR Manager' },
+        { id:'EMP-0002', fullName:'Usman Khalid', department:'Production', designation:'Production Supervisor' },
+        { id:'EMP-0003', fullName:'Sara Khan', department:'Inventory', designation:'Inventory Clerk' },
+        { id:'EMP-0004', fullName:'Faisal Mahmood', department:'Finance', designation:'Accountant' },
+        { id:'EMP-0005', fullName:'Noor Ahmed', department:'IT Support', designation:'IT Support Specialist' },
+        { id:'EMP-0006', fullName:'Hina Bashir', department:'Production', designation:'Quality Control Inspector' },
+        { id:'EMP-0007', fullName:'Bilal Hussain', department:'Production', designation:'Machine Operator' },
+        { id:'EMP-0008', fullName:'Zainab Ali', department:'HR & Administration', designation:'HR Manager' }
+      ];
+
+      const today = new Date().toISOString().slice(0, 10);
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+      let attendance = [
+        { id:'ATT-0001', employeeId:'EMP-0001', employeeName:'Amina Rahman', department:'HR & Administration', designation:'HR Manager', date:today, checkIn:'08:55', checkOut:'17:05', status:'present', remarks:'On time' },
+        { id:'ATT-0002', employeeId:'EMP-0002', employeeName:'Usman Khalid', department:'Production', designation:'Production Supervisor', date:today, checkIn:'09:18', checkOut:'17:30', status:'late', remarks:'Traffic delay' },
+        { id:'ATT-0003', employeeId:'EMP-0003', employeeName:'Sara Khan', department:'Inventory', designation:'Inventory Clerk', date:today, checkIn:'', checkOut:'', status:'on-leave', remarks:'Annual leave approved' },
+        { id:'ATT-0004', employeeId:'EMP-0004', employeeName:'Faisal Mahmood', department:'Finance', designation:'Accountant', date:today, checkIn:'', checkOut:'', status:'absent', remarks:'Unplanned absence' },
+        { id:'ATT-0005', employeeId:'EMP-0005', employeeName:'Noor Ahmed', department:'IT Support', designation:'IT Support Specialist', date:today, checkIn:'08:50', checkOut:'13:00', status:'half-day', remarks:'Medical appointment' },
+        { id:'ATT-0006', employeeId:'EMP-0006', employeeName:'Hina Bashir', department:'Production', designation:'Quality Control Inspector', date:today, checkIn:'08:45', checkOut:'17:15', status:'present', remarks:'' },
+        { id:'ATT-0007', employeeId:'EMP-0007', employeeName:'Bilal Hussain', department:'Production', designation:'Machine Operator', date:today, checkIn:'09:05', checkOut:'17:00', status:'late', remarks:'Shift handover delay' },
+        { id:'ATT-0008', employeeId:'EMP-0008', employeeName:'Zainab Ali', department:'HR & Administration', designation:'HR Manager', date:today, checkIn:'', checkOut:'', status:'on-leave', remarks:'Sick leave' },
+        { id:'ATT-0009', employeeId:'EMP-0002', employeeName:'Usman Khalid', department:'Production', designation:'Production Supervisor', date:yesterday, checkIn:'08:40', checkOut:'17:20', status:'present', remarks:'' },
+        { id:'ATT-0010', employeeId:'EMP-0005', employeeName:'Noor Ahmed', department:'IT Support', designation:'IT Support Specialist', date:yesterday, checkIn:'08:58', checkOut:'17:10', status:'present', remarks:'' }
+      ];
+
+      const $tableEl = $('#attendanceTable');
+      const $tbody = $tableEl.find('tbody');
+
+      const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+
+      const statusBadge = (status) => {
+        const map = {
+          present: '<span class="badge status-badge badge-present">Present</span>',
+          absent: '<span class="badge status-badge badge-absent">Absent</span>',
+          late: '<span class="badge status-badge badge-late">Late</span>',
+          'half-day': '<span class="badge status-badge badge-half-day">Half Day</span>',
+          'on-leave': '<span class="badge status-badge badge-on-leave-att">On Leave</span>'
+        };
+        return map[String(status || '').toLowerCase()] || map.present;
+      };
+
+      const formatTimeDisplay = (value) => {
+        const v = String(value || '').trim();
+        return v ? v : '—';
+      };
+
+      const computeWorkingHours = (checkIn, checkOut, status) => {
+        const s = String(status || '').toLowerCase();
+        if (s === 'absent' || s === 'on-leave') return '0.00';
+        if (!checkIn || !checkOut) return s === 'half-day' ? '4.00' : '—';
+
+        const [inH, inM] = checkIn.split(':').map(Number);
+        const [outH, outM] = checkOut.split(':').map(Number);
+        if ([inH, inM, outH, outM].some(Number.isNaN)) return '—';
+
+        let minutes = (outH * 60 + outM) - (inH * 60 + inM);
+        if (minutes < 0) minutes += 24 * 60;
+        return (minutes / 60).toFixed(2);
+      };
+
+      const enrichRecord = (record) => {
+        record.workingHours = computeWorkingHours(record.checkIn, record.checkOut, record.status);
+        return record;
+      };
+
+      attendance = attendance.map(enrichRecord);
+
+      const getTodayRecords = () => attendance.filter(r => r.date === today);
+
+      const renderKPIs = () => {
+        const todayRecords = getTodayRecords();
+        $('#kpiTotalEmployees').text(employeeRoster.length);
+        $('#kpiPresentToday').text(todayRecords.filter(r => r.status === 'present').length);
+        $('#kpiAbsentToday').text(todayRecords.filter(r => r.status === 'absent').length);
+        $('#kpiLateToday').text(todayRecords.filter(r => r.status === 'late').length);
+      };
+
+      const renderDailySummary = () => {
+        const todayRecords = getTodayRecords();
+        const counts = {
+          present: todayRecords.filter(r => r.status === 'present').length,
+          absent: todayRecords.filter(r => r.status === 'absent').length,
+          late: todayRecords.filter(r => r.status === 'late').length,
+          'half-day': todayRecords.filter(r => r.status === 'half-day').length,
+          'on-leave': todayRecords.filter(r => r.status === 'on-leave').length
+        };
+
+        document.getElementById('summaryDateLabel').textContent = today;
+
+        const items = [
+          { key:'present', label:'Present', icon:'fa-user-check', color:'var(--erp-success)' },
+          { key:'absent', label:'Absent', icon:'fa-user-xmark', color:'var(--erp-danger)' },
+          { key:'late', label:'Late', icon:'fa-clock', color:'var(--erp-warning)' },
+          { key:'half-day', label:'Half Day', icon:'fa-hourglass-half', color:'var(--erp-info)' },
+          { key:'on-leave', label:'On Leave', icon:'fa-plane-departure', color:'var(--erp-purple)' }
+        ];
+
+        document.getElementById('dailySummaryContainer').innerHTML = items.map(item => `
+          <div class="col-12 col-sm-6">
+            <div class="summary-pill">
+              <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid ${item.icon}" style="color:${item.color};"></i>
+                <span class="fw-semibold">${item.label}</span>
+              </div>
+              <span class="fw-bold fs-5" style="color:var(--erp-primary);">${counts[item.key]}</span>
+            </div>
+          </div>
+        `).join('');
+      };
+
+      const renderDeptSummary = () => {
+        const todayRecords = getTodayRecords();
+        const departments = [...new Set(employeeRoster.map(e => e.department))];
+        const body = document.getElementById('deptSummaryBody');
+
+        body.innerHTML = departments.map(dept => {
+          const deptEmployees = employeeRoster.filter(e => e.department === dept);
+          const deptRecords = todayRecords.filter(r => r.department === dept);
+          const countByStatus = (status) => deptRecords.filter(r => r.status === status).length;
+
+          return `
+            <tr>
+              <td class="fw-semibold">${escapeHtml(dept)}</td>
+              <td class="text-center">${deptEmployees.length}</td>
+              <td class="text-center">${countByStatus('present')}</td>
+              <td class="text-center">${countByStatus('absent')}</td>
+              <td class="text-center">${countByStatus('late')}</td>
+              <td class="text-center">${countByStatus('half-day')}</td>
+              <td class="text-center">${countByStatus('on-leave')}</td>
+            </tr>
+          `;
+        }).join('');
+      };
+
+      const renderRows = () => {
+        $tbody.empty();
+        for (const r of attendance){
+          const row = `
+            <tr>
+              <td class="fw-bold">${escapeHtml(r.id)}</td>
+              <td>${escapeHtml(r.employeeId)}</td>
+              <td>${escapeHtml(r.employeeName)}</td>
+              <td>${escapeHtml(r.department)}</td>
+              <td>${escapeHtml(r.designation)}</td>
+              <td>${escapeHtml(r.date)}</td>
+              <td>${escapeHtml(formatTimeDisplay(r.checkIn))}</td>
+              <td>${escapeHtml(formatTimeDisplay(r.checkOut))}</td>
+              <td>${escapeHtml(r.workingHours)}</td>
+              <td>${statusBadge(r.status)}</td>
+              <td>${escapeHtml(r.remarks || '—')}</td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn btn-sm action-btn" style="background:rgba(11,42,74,.06); color:var(--erp-primary); border:1px solid rgba(11,42,74,.12);" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" data-action="view" data-id="${escapeHtml(r.id)}"><i class="fa-solid fa-eye me-2"></i>View</a></li>
+                    <li><a class="dropdown-item" href="#" data-action="edit" data-id="${escapeHtml(r.id)}"><i class="fa-solid fa-pen-to-square me-2"></i>Edit</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="delete" data-id="${escapeHtml(r.id)}"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(row);
+        }
+      };
+
+      const populateEmployeeSelect = () => {
+        const select = document.getElementById('addAttEmployee');
+        select.innerHTML = '<option value="" selected disabled>Select employee</option>';
+        for (const emp of employeeRoster){
+          const opt = document.createElement('option');
+          opt.value = emp.id;
+          opt.textContent = `${emp.fullName} (${emp.id})`;
+          opt.dataset.department = emp.department;
+          opt.dataset.designation = emp.designation;
+          opt.dataset.fullName = emp.fullName;
+          select.appendChild(opt);
+        }
+      };
+
+      const exportOptions = { columns: ':not(:last-child)' };
+
+      const commonDt = {
+        pageLength: 10,
+        lengthChange: false,
+        responsive: true,
+        autoWidth: false,
+        ordering: true,
+        order: [[5, 'desc']],
+        dom: 'Bfrtip',
+        columnDefs: [
+          { responsivePriority: 1, targets: [0, 2, 9] },
+          { responsivePriority: 2, targets: [3, 4, 5] },
+          { responsivePriority: 3, targets: [6, 7, 8] },
+          { orderable: false, targets: -1 }
+        ],
+        buttons: [
+          { extend: 'excel', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-excel me-1"></i>Export Excel', exportOptions },
+          { extend: 'pdf', className: 'btn-sm btn', text: '<i class="fa-solid fa-file-pdf me-1"></i>Export PDF', exportOptions },
+          { extend: 'print', className: 'btn-sm btn', text: '<i class="fa-solid fa-print me-1"></i>Print', exportOptions }
+        ],
+        language: {
+          search: 'Search:',
+          paginate: { next: 'Next', previous: 'Prev' }
+        }
+      };
+
+      let dt;
+      const refreshAll = () => {
+        if (dt) dt.destroy();
+        renderKPIs();
+        renderDailySummary();
+        renderDeptSummary();
+        renderRows();
+        dt = $tableEl.DataTable(commonDt);
+      };
+
+      const fillEditForm = (r) => {
+        document.getElementById('editAttIdHidden').value = r.id;
+        document.getElementById('editAttEmployeeName').value = r.employeeName;
+        document.getElementById('editAttDepartment').value = r.department;
+        document.getElementById('editAttDate').value = r.date;
+        document.getElementById('editAttStatus').value = r.status;
+        document.getElementById('editAttCheckIn').value = r.checkIn || '';
+        document.getElementById('editAttCheckOut').value = r.checkOut || '';
+        document.getElementById('editAttRemarks').value = r.remarks === '—' ? '' : (r.remarks || '');
+      };
+
+      const fillViewModal = (r) => {
+        document.getElementById('viewAttEmployeeName').textContent = r.employeeName;
+        document.getElementById('viewAttEmployeeId').textContent = r.employeeId;
+        document.getElementById('viewAttAttendanceId').textContent = r.id;
+        document.getElementById('viewAttDepartment').textContent = r.department;
+        document.getElementById('viewAttDesignation').textContent = r.designation;
+        document.getElementById('viewAttDate').textContent = r.date;
+        document.getElementById('viewAttCheckIn').textContent = formatTimeDisplay(r.checkIn);
+        document.getElementById('viewAttCheckOut').textContent = formatTimeDisplay(r.checkOut);
+        document.getElementById('viewAttWorkingHours').textContent = r.workingHours;
+        document.getElementById('viewAttRemarks').textContent = r.remarks || '—';
+        document.getElementById('viewAttStatusContainer').innerHTML = statusBadge(r.status);
+      };
+
+      const toggleTimeFields = (status, checkInEl, checkOutEl) => {
+        const disabled = ['absent', 'on-leave'].includes(status);
+        checkInEl.disabled = disabled;
+        checkOutEl.disabled = disabled;
+        if (disabled){
+          checkInEl.value = '';
+          checkOutEl.value = '';
+        }
+      };
+
+      populateEmployeeSelect();
+      document.getElementById('addAttDate').value = today;
+
+      document.getElementById('addAttEmployee').addEventListener('change', (ev) => {
+        const option = ev.target.selectedOptions[0];
+        document.getElementById('addAttDepartment').value = option?.dataset.department || '';
+      });
+
+      document.getElementById('addAttStatus').addEventListener('change', (ev) => {
+        toggleTimeFields(ev.target.value, document.getElementById('addAttCheckIn'), document.getElementById('addAttCheckOut'));
+      });
+
+      document.getElementById('editAttStatus').addEventListener('change', (ev) => {
+        toggleTimeFields(ev.target.value, document.getElementById('editAttCheckIn'), document.getElementById('editAttCheckOut'));
+      });
+
+      $('#btnRefresh').on('click', () => refreshAll());
+
+      $('#logoutBtn').on('click', (ev) => {
+        ev.preventDefault();
+        window.location.href = '../auth/login.html';
+      });
+
+      document.getElementById('addAttendanceForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const employeeSelect = document.getElementById('addAttEmployee');
+        const option = employeeSelect.selectedOptions[0];
+        if (!option) return;
+
+        const date = document.getElementById('addAttDate').value;
+        const status = document.getElementById('addAttStatus').value;
+        const checkIn = document.getElementById('addAttCheckIn').value;
+        const checkOut = document.getElementById('addAttCheckOut').value;
+        const remarks = document.getElementById('addAttRemarks').value.trim();
+
+        if (!date) return;
+
+        const nextNum = attendance.length
+          ? Math.max(...attendance.map(x => parseInt(String(x.id).replace(/[^0-9]/g,'')) || 0)) + 1
+          : 1;
+
+        attendance.push(enrichRecord({
+          id: `ATT-${String(nextNum).padStart(4,'0')}`,
+          employeeId: option.value,
+          employeeName: option.dataset.fullName,
+          department: option.dataset.department,
+          designation: option.dataset.designation,
+          date,
+          checkIn,
+          checkOut,
+          status,
+          remarks: remarks || '—'
+        }));
+
+        ev.target.reset();
+        document.getElementById('addAttDate').value = today;
+        document.getElementById('addAttStatus').value = 'present';
+        bootstrap.Modal.getInstance(document.getElementById('addAttendanceModal'))?.hide();
+        refreshAll();
+      });
+
+      $tableEl.on('click', 'a[data-action]', (ev) => {
+        ev.preventDefault();
+        const action = ev.currentTarget.getAttribute('data-action');
+        const id = ev.currentTarget.getAttribute('data-id');
+        const record = attendance.find(x => x.id === id);
+        if (!record) return;
+
+        if (action === 'view'){
+          fillViewModal(record);
+          new bootstrap.Modal(document.getElementById('viewAttendanceModal')).show();
+          return;
+        }
+
+        if (action === 'edit'){
+          fillEditForm(record);
+          toggleTimeFields(record.status, document.getElementById('editAttCheckIn'), document.getElementById('editAttCheckOut'));
+          new bootstrap.Modal(document.getElementById('editAttendanceModal')).show();
+          return;
+        }
+
+        if (action === 'delete'){
+          document.getElementById('deleteAttIdHidden').value = record.id;
+          document.getElementById('deleteAttTitle').textContent = `Delete attendance for "${record.employeeName}"?`;
+          document.getElementById('deleteAttMessage').textContent = `${record.id} • ${record.date}. This action cannot be undone.`;
+          new bootstrap.Modal(document.getElementById('deleteAttendanceModal')).show();
+        }
+      });
+
+      document.getElementById('editAttendanceForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('editAttIdHidden').value;
+        const record = attendance.find(x => x.id === id);
+        if (!record) return;
+
+        record.date = document.getElementById('editAttDate').value;
+        record.status = document.getElementById('editAttStatus').value;
+        record.checkIn = document.getElementById('editAttCheckIn').value;
+        record.checkOut = document.getElementById('editAttCheckOut').value;
+        record.remarks = document.getElementById('editAttRemarks').value.trim() || '—';
+        enrichRecord(record);
+
+        bootstrap.Modal.getInstance(document.getElementById('editAttendanceModal'))?.hide();
+        refreshAll();
+      });
+
+      document.getElementById('deleteAttendanceForm').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('deleteAttIdHidden').value;
+        attendance = attendance.filter(x => x.id !== id);
+        bootstrap.Modal.getInstance(document.getElementById('deleteAttendanceModal'))?.hide();
+        refreshAll();
+      });
+
+      document.addEventListener('DOMContentLoaded', () => refreshAll());
+    })();
+  </script>
+
+</body>
+</html>
